@@ -5,6 +5,8 @@
 #include <string>
 #include <lib/base/eerror.h>
 
+typedef long long pts_t;
+
 /* Wrapper around FILE to prevent leaks and to make your code a bit more OO */
 struct CFile
 {
@@ -37,6 +39,7 @@ struct CFile
 	/* Fetch integer from /proc files and such */
 	static int parseIntHex(int *result, const char *filename);
 	static int parseInt(int *result, const char *filename);
+	static int parsePts_t(pts_t *result, const char *filename);
 	static int writeIntHex(const char *filename, int value);
 	static int writeInt(const char *filename, int value);
 	static int writeStr(const char *filename, std::string value);

@@ -1015,11 +1015,11 @@ class ScanSetup(ConfigListScreen, Screen, CableTransponderSearchSupport, Terrest
 			"t2mi_plp_id": eDVBFrontendParametersSatellite.No_T2MI_PLP_Id,
 			"t2mi_pid": eDVBFrontendParametersSatellite.T2MI_Default_Pid }
 		defaultCab = {
-			"frequency": 466000,
+			"frequency": 477000,
 			"inversion": eDVBFrontendParametersCable.Inversion_Unknown,
-			"modulation": eDVBFrontendParametersCable.Modulation_QAM64,
+			"modulation": eDVBFrontendParametersCable.Modulation_QAM256,
 			"fec": eDVBFrontendParametersCable.FEC_Auto,
-			"symbolrate": 6900,
+			"symbolrate": 5217,
 			"system": eDVBFrontendParametersCable.System_DVB_C_ANNEX_A }
 		defaultTer = {
 			"frequency" : 474000,
@@ -1065,7 +1065,7 @@ class ScanSetup(ConfigListScreen, Screen, CableTransponderSearchSupport, Terrest
 				defaultCab["symbolrate"] = frontendData.get("symbol_rate", 0) / 1000
 				defaultCab["inversion"] = frontendData.get("inversion", eDVBFrontendParametersCable.Inversion_Unknown)
 				defaultCab["fec"] = frontendData.get("fec_inner", eDVBFrontendParametersCable.FEC_Auto)
-				defaultCab["modulation"] = frontendData.get("modulation", eDVBFrontendParametersCable.Modulation_QAM16)
+				defaultCab["modulation"] = frontendData.get("modulation", eDVBFrontendParametersCable.Modulation_QAM256)
 				defaultCab["system"] = frontendData.get("system", eDVBFrontendParametersCable.System_DVB_C_ANNEX_A)
 			elif ttype == "DVB-T":
 				defaultTer["frequency"] = frontendData.get("frequency", 47400000) / 1000

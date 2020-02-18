@@ -254,6 +254,9 @@ protected:
 
 	int m_skipmode;
 	int m_fastforward;
+#ifdef HAVE_HISIAPI
+	int m_fastforward_ratio;
+#endif
 	int m_slowmotion;
 
 		/* cuesheet */

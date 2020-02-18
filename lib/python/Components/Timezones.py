@@ -50,7 +50,9 @@ class Timezones:
 
 	def getDefaultTimezone(self):
 		# TODO return something more useful - depending on country-settings?
-		if getMachineBrand() == "Beyonwiz":
+		if getMachineBrand() in ('Atto', 'Atto.TV'):
+			t = "(GMT-03:00) Brasilia"
+		elif getMachineBrand() == "Beyonwiz":
 			t = "(GMT+10:00) Australia: Sydney"
 		else:
 			t = "(GMT+01:00) Germany: Berlin"

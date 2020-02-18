@@ -1695,6 +1695,13 @@ int eDVBFrontend::readFrontendData(int type)
 		(b) Signal levels close to limiting may be accompanied by high noise (e.g. interference) levels, thus leading to moderate or low signalQualitydB values
 	Values derived from the legacy API are likely to be unreliable, with 100% being returned for a wide range of signalQualitydB values - comparison between muxes is probably safer using signalQualitydB.	
 */
+#ifdef HAVE_HISIAPI
+			{
+				int signalquality = readFrontendData(iFrontendInformation_ENUMS::signalPower);
+				return signalquality;
+			}
+			break;
+#endif
 		case iFrontendInformation_ENUMS::signalQualitydB:
 /* 	This moved into the driver on DVB API 5.10 
 	When using new API:
@@ -1708,9 +1715,11 @@ int eDVBFrontend::readFrontendData(int type)
 */
 			if (m_state == stateLock)
 			{
+#ifndef HAVE_HISIAPI
 				int signalquality = 0;
+#endif
 				int signalqualitydb = 0;
-#if DVB_API_VERSION > 5 || DVB_API_VERSION == 5 && DVB_API_VERSION_MINOR >= 10
+#if !defined(HAVE_HISIAPI) && (DVB_API_VERSION > 5 || DVB_API_VERSION == 5 && DVB_API_VERSION_MINOR >= 10)
 				if (m_dvbversion >= DVB_VERSION(5, 10) && !eConfigManager::getConfigBoolValue(force_legacy_signal_stats, false))
 				{
 					dtv_property prop[1];
@@ -1757,6 +1766,10 @@ int eDVBFrontend::readFrontendData(int type)
 					}
 				}
 #endif
+#ifdef HAVE_HISIAPI
+				signalqualitydb = readFrontendData(iFrontendInformation_ENUMS::snrValue);
+				return signalqualitydb;
+#else
 				/* fallback to old DVB API */
 				int snr = readFrontendData(iFrontendInformation_ENUMS::snrValue);
 				calculateSignalQuality(snr, signalquality, signalqualitydb);
@@ -1769,6 +1782,7 @@ int eDVBFrontend::readFrontendData(int type)
 				{
 					return signalqualitydb;
 				}
+#endif
 			}
 			break;
 		case iFrontendInformation_ENUMS::signalPower:
@@ -1777,7 +1791,7 @@ int eDVBFrontend::readFrontendData(int type)
 				uint16_t strength=0;
 				if (!m_simulate)
 				{
-#if DVB_API_VERSION > 5 || DVB_API_VERSION == 5 && DVB_API_VERSION_MINOR >= 10
+#if !defined(HAVE_HISIAPI) && (DVB_API_VERSION > 5 || DVB_API_VERSION == 5 && DVB_API_VERSION_MINOR >= 10)
 					if (m_dvbversion >= DVB_VERSION(5, 10) && !eConfigManager::getConfigBoolValue(force_legacy_signal_stats, false))
 					{
 						dtv_property prop[1];
@@ -3485,9 +3499,16 @@ RESULT eDVBFrontend::setVoltage(int voltage)
 		case voltageOff:
 			m_data[CSW]=m_data[UCSW]=m_data[TONEBURST]=-1; // reset diseqc
 			vlt = SEC_VOLTAGE_OFF;
+#ifdef HAVE_HISIAPI
+			if(m_type != feCable)
+			{
+#endif
 			char filename[256];
 			snprintf(filename, sizeof(filename), "/proc/stb/frontend/%d/active_antenna_power", m_slotid);
 			CFile::writeStr(filename, "off");
+#ifdef HAVE_HISIAPI
+			}
+#endif
 			break;
 		case voltage13_5:
 			increased = true;

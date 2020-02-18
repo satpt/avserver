@@ -94,3 +94,4 @@ if HAVE_GRAUTEC70X0
 SUBDIRS += grautec70x0
 endif
 
+SUBDIRS += rc_models

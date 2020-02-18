@@ -264,7 +264,7 @@ int eDVBCAHandler::registerService(const eServiceReferenceDVB &ref, int adapter,
 	{
 		caservice = (services[ref] = new eDVBCAService(ref));
 		caservice->setAdapter(adapter);
-		eDebug("[eDVBCAService] new service %s", ref.toString().c_str() );
+		eDebug("[eDVBCAService] new service %s in adapter %d.", ref.toString().c_str(), adapter);
 	}
 	caservice->addServiceType(servicetype);
 

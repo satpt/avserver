@@ -336,7 +336,7 @@ void eRCDeviceInputDev::handleCode(long rccode)
 	}
 #endif
 
-#if KEY_INFO_TO_KEY_EPG
+#if defined(KEY_INFO_TO_KEY_EPG) && !defined(HAVE_HISIAPI)
 	if (ev->code == KEY_INFO)
 	{
 		/* vu Remote rc has a EPG key, which sends KEY_INFO events but we need a KEY_EPG. Correct this, so we do not have to place hacks in the keymaps. */

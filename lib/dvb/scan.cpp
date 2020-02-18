@@ -33,6 +33,8 @@
 #define SCAN_eDebugNoNewLine(x...) do { if (m_scan_debug) eDebugNoNewLine(x); } while(0)
 #define SCAN_eDebugNoNewLineEnd(x...) do { if (m_scan_debug) eDebugNoNewLineEnd(x); } while(0)
 
+#define BRASIL_NET_LOGICAL_CHANNEL_DESCRIPTOR 0x82
+
 DEFINE_REF(eDVBScan);
 
 eDVBScan::eDVBScan(iDVBChannel *channel, bool usePAT, bool debug)
@@ -894,6 +896,7 @@ void eDVBScan::channelDone()
 						break;
 					}
 					case LOGICAL_CHANNEL_DESCRIPTOR:
+					case BRASIL_NET_LOGICAL_CHANNEL_DESCRIPTOR:
 					{
 						// we handle it later
 						break;
@@ -1002,6 +1005,7 @@ void eDVBScan::channelDone()
 					switch ((*desc)->getTag())
 					{
 						case LOGICAL_CHANNEL_DESCRIPTOR:
+						case BRASIL_NET_LOGICAL_CHANNEL_DESCRIPTOR:
 						{
 							if (system != iDVBFrontend::feTerrestrial)
 								break; // when current locked transponder is no terrestrial transponder ignore this descriptor

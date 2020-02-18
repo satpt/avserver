@@ -94,7 +94,11 @@ int eDVBDemux::openDemux(void)
 int eDVBDemux::openDVR(int flags)
 {
 	char filename[32];
+#ifdef HAVE_HISIAPI
+	snprintf(filename, sizeof(filename), "/dev/player/dvr%d", adapter);
+#else
 	snprintf(filename, sizeof(filename), "/dev/dvb/adapter%d/dvr%d", adapter, demux);
+#endif
 	eDebug("[eDVBDemux] open dvr %s", filename);
 #if HAVE_AMLOGIC
 	m_pvr_fd =  ::open(filename, flags);

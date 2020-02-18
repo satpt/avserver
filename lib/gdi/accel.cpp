@@ -18,7 +18,9 @@ gAccel *gAccel::instance;
 
 #if not defined(HAVE_HISILICON_ACCEL)
 #if not defined(__sh__)
+#ifndef HAVE_HISIAPI
 #define BCM_ACCEL
+#endif
 #else
 #define STMFB_ACCEL
 #endif
@@ -412,6 +414,9 @@ int gAccel::sync()
 
 int gAccel::accelAlloc(gUnmanagedSurface* surface)
 {
+#ifdef HAVE_HISIAPI
+	return 0;
+#endif
 	int stride = (surface->stride + ACCEL_ALIGNMENT_MASK) & ~ACCEL_ALIGNMENT_MASK;
 	int size = stride * surface->y;
 	if (!size)

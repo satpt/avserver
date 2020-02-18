@@ -90,6 +90,25 @@ eDVBResourceManager::eDVBResourceManager()
 	if (!instance)
 		instance = this;
 
+#ifdef HAVE_HISIAPI
+	int num_adapter = 0;
+	while (eDVBAdapterLinux::exist(num_adapter))
+	{
+		if (eDVBAdapterLinux::isusb(num_adapter))
+		{
+			eDVBAdapterLinux *adapter = new eDVBUsbAdapter(num_adapter);
+			addAdapter(adapter);
+		}
+		else
+		{
+			eDVBAdapterLinux *adapter = new eDVBAdapterLinux(num_adapter);
+			adapter->scanDevices();
+			addAdapter(adapter, true);
+		}
+
+		num_adapter++;
+	}
+#else
 	int num_adapter = 1;
 	while (eDVBAdapterLinux::exist(num_adapter))
 	{
@@ -107,6 +126,7 @@ eDVBResourceManager::eDVBResourceManager()
 		adapter->scanDevices();
 		addAdapter(adapter, true);
 	}
+#endif
 
 	int fd = open("/proc/stb/info/model", O_RDONLY);
 	char tmp[16];
@@ -192,6 +212,12 @@ eDVBResourceManager::eDVBResourceManager()
 		m_boxtype = WETEKPLAY2;
 	else if (!strncmp(tmp, "wetekhub\n", rd))
 		m_boxtype = WETEKHUB;
+#ifdef HAVE_HISIAPI
+	else if (!strncmp(tmp, "poplar\n", rd))
+		m_boxtype = HISILICON;
+	else if (!strncmp(tmp, "pixel\n", rd))
+		m_boxtype = HISILICON;
+#endif
 	else {
 		eDebug("[eDVBResourceManager] boxtype detection via /proc/stb/info not possible... use fallback via demux count!");
 		if (m_demux.size() == 3)
@@ -341,8 +367,13 @@ bool eDVBAdapterLinux::isusb(int nr)
 	{
 		return true;
 	}
-	snprintf(devicename, sizeof(devicename), "/sys/class/dvb/dvb%d.frontend0/device/subsystem", nr);
-	return readLink(devicename).find("/usb") != std::string::npos;
+	snprintf(devicename, sizeof(devicename), "/sys/class/dvb/dvb%d.frontend0/device/ep_84", nr);
+	if (::access(devicename, X_OK) >= 0)
+	{
+		return true;
+	}
+	snprintf(devicename, sizeof(devicename), "/sys/class/dvb/dvb%d.frontend0/device/ep_8f", nr);
+	return ::access(devicename, X_OK) >= 0;
 }
 
 DEFINE_REF(eDVBUsbAdapter);
@@ -392,7 +423,7 @@ eDVBUsbAdapter::eDVBUsbAdapter(int nr)
 		buf_pos += 1;
 	}
 	num_fe++;
-	snprintf(filename, sizeof(filename), "/dev/dvb/adapter0/frontend%d", num_fe);
+	snprintf(filename, sizeof(filename), "/dev/dvb/adapter%d/frontend%d", nr, num_fe);
 	virtualFrontendName = filename;
 
 	/* find the device name */
@@ -799,6 +830,7 @@ PyObject *eDVBResourceManager::setFrontendSlotInformations(ePyObject list)
 			Enabled = PyTuple_GET_ITEM(obj, 2);
 			IsDVBS2 = PyTuple_GET_ITEM(obj, 3);
 			frontendId = PyTuple_GET_ITEM(obj, 4);
+			eDebug("HISILICON (F): Id=%d, Descr=%s, Enabled=%s, IsDVBS2=%s, frontendId=%d.", PyInt_AsLong(Id), PyString_AS_STRING(Descr), Enabled == Py_True ? "True" : "False", IsDVBS2 == Py_True ? "True" : "False", PyInt_AsLong(frontendId));
 			if (!PyInt_Check(Id) || !PyString_Check(Descr) || !PyBool_Check(Enabled) || !PyBool_Check(IsDVBS2) || !PyInt_Check(frontendId))
 				continue;
 			if (!i->m_frontend->setSlotInfo(PyInt_AsLong(Id), PyString_AS_STRING(Descr), Enabled == Py_True, IsDVBS2 == Py_True, PyInt_AsLong(frontendId)))
@@ -824,6 +856,7 @@ PyObject *eDVBResourceManager::setFrontendSlotInformations(ePyObject list)
 			Enabled = PyTuple_GET_ITEM(obj, 2);
 			IsDVBS2 = PyTuple_GET_ITEM(obj, 3);
 			frontendId = PyTuple_GET_ITEM(obj, 4);
+			eDebug("HISILICON (S): Id=%d, Descr=%s, Enabled=%s, IsDVBS2=%s, frontendId=%d.", PyInt_AsLong(Id), PyString_AS_STRING(Descr), Enabled == Py_True ? "True" : "False", IsDVBS2 == Py_True ? "True" : "False", PyInt_AsLong(frontendId));
 			if (!PyInt_Check(Id) || !PyString_Check(Descr) || !PyBool_Check(Enabled) || !PyBool_Check(IsDVBS2) || !PyInt_Check(frontendId))
 				continue;
 			if (!i->m_frontend->setSlotInfo(PyInt_AsLong(Id), PyString_AS_STRING(Descr), Enabled == Py_True, IsDVBS2 == Py_True, PyInt_AsLong(frontendId)))

@@ -2825,6 +2825,9 @@ void eDVBServicePlay::switchToLive()
 
 void eDVBServicePlay::resetTimeshift(int start)
 {
+#ifdef HAVE_HISIAPI
+	m_decoder->setSlowMotion(start ? 11 /* Enable */ : 10 /* Disable */);
+#endif
 	m_cue = 0;
 	m_decode_demux = 0;
 	m_decoder = 0;
