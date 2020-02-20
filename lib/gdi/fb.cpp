@@ -438,7 +438,7 @@ void fbClass::blit()
 	{
 		eDebug("[fb] STMFBIO_SYNC_BLITTER %m");
 	}
-#elif !defined(CONFIG_ION)
+#elif !defined(CONFIG_ION) && !defined(HAVE_HISIAPI)
 	if (m_manual_blit == 1) {
 		if (ioctl(fbFd, FBIO_BLIT) < 0)
 			eDebug("[fb] FBIO_BLIT %m");

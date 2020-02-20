@@ -2100,7 +2100,7 @@ class ScanSimple(ConfigListScreen, Screen, CableTransponderSearchSupport, Terres
 							else:
 								skip_t2 = False
 					getInitialTerrestrialTransponderList(tlist, n.network, skip_t2)
-				if n.nim_type == "ATSC":
+				elif n.nim_type == "ATSC":
 					getInitialATSCTransponderList(tlist, nim.slot)
 				else:
 					assert False

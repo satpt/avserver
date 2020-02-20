@@ -954,6 +954,7 @@ RESULT eDVBTSRecorder::startPID(int pid)
 
 void eDVBTSRecorder::stopPID(int pid)
 {
+#ifndef HAVE_HISIAPI
 	if (m_pids[pid] != -1)
 	{
 		while(true) {
@@ -968,6 +969,7 @@ void eDVBTSRecorder::stopPID(int pid)
 			break;
 		}
 	}
+#endif
 	m_pids[pid] = -1;
 }
 

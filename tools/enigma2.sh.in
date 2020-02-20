@@ -174,17 +174,23 @@ fi
 case $ret in
 	1)
 		touch /etc/enigma2/.deep
-		/sbin/halt
+		model=`cat /proc/stb/info/model`
+		if [ $model == "pixel" ]; then
+			echo -n "off" > /proc/stb/hdmi/output
+			systemctl stop enigma2
+		else
+			/sbin/halt
+		fi
 		;;
 	2)
 		if [ -f /proc/stb/fp/force_restart ]; then
 			echo 1 > /proc/stb/fp/force_restart
 		fi
 		[[ -e /etc/enigma2/.deep ]] && rm /etc/enigma2/.deep
-		/sbin/reboot
+		/sbin/shutdown -r now
 		;;
 	3)
-		rm -fR /home/root/.gstreamer-0.10
+		rm -fR /home/root/.gstreamer-*
 		rm -f /tmp/.listen.camd.socket.ignore
 		;;
 	4)
@@ -194,7 +200,7 @@ case $ret in
 		/sbin/rmmod fp
 		/sbin/modprobe fp
 		[[ -e /etc/enigma2/.deep ]] && rm /etc/enigma2/.deep
-		/sbin/reboot
+		/sbin/shutdown -r now
 		;;
 	16)
 		if [ -e /dev/block/by-name/bootoptions ]; then
@@ -205,7 +211,7 @@ case $ret in
 			echo "rescue" > /proc/stb/fp/boot_mode
 		fi
 		[[ -e /etc/enigma2/.deep ]] && rm /etc/enigma2/.deep
-		/sbin/reboot
+		/sbin/shutdown -r now
 		;;
 	42)
 		python @libdir@/enigma2/python/upgrade.pyo

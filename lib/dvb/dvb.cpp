@@ -816,10 +816,10 @@ PyObject *eDVBResourceManager::setFrontendSlotInformations(ePyObject list)
 		PyErr_SetString(PyExc_StandardError, "eDVBResourceManager::setFrontendSlotInformations argument should be a python list");
 		return NULL;
 	}
+	int pos = 0;
 	unsigned int assigned=0;
 	for (eSmartPtrList<eDVBRegisteredFrontend>::iterator i(m_frontend.begin()); i != m_frontend.end(); ++i)
 	{
-		int pos=0;
 		while (pos < PyList_Size(list)) {
 			ePyObject obj = PyList_GET_ITEM(list, pos++);
 			ePyObject Id, Descr, Enabled, IsDVBS2, frontendId;
@@ -843,9 +843,9 @@ PyObject *eDVBResourceManager::setFrontendSlotInformations(ePyObject list)
 		eDebug("[eDVBResourceManager::setFrontendSlotInformations] .. assigned %zd socket informations, but %d registered frontends!",
 			m_frontend.size(), assigned);
 	}
+	pos = 0;
 	for (eSmartPtrList<eDVBRegisteredFrontend>::iterator i(m_simulate_frontend.begin()); i != m_simulate_frontend.end(); ++i)
 	{
-		int pos=0;
 		while (pos < PyList_Size(list)) {
 			ePyObject obj = PyList_GET_ITEM(list, pos++);
 			ePyObject Id, Descr, Enabled, IsDVBS2, frontendId;

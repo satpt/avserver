@@ -344,6 +344,13 @@ void eRCDeviceInputDev::handleCode(long rccode)
 	}
 #endif
 
+#if defined(HAVE_HISIAPI)
+	if (ev->code == KEY_FORWARD)
+	{
+		ev->code = KEY_FASTFORWARD;
+	}
+#endif
+
 #if KEY_HELP_TO_KEY_INFO
 	if (ev->code == KEY_HELP)
 	{

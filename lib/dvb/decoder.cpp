@@ -152,7 +152,7 @@ int eDVBAudio::startPid(int pid, int type)
 		freeze();  // why freeze here?!? this is a problem when only a pid change is requested... because of the unfreeze logic in Decoder::setState
 #endif
 		eDebugNoNewLineStart("[eDVBAudio%d] AUDIO_PLAY ", m_dev);
-		if (::ioctl(m_fd, AUDIO_PLAY) < 0)
+		if (::ioctl(m_fd, AUDIO_PLAY, pid) < 0)
 			eDebugNoNewLine("failed: %m");
 		else
 			eDebugNoNewLine("ok");
@@ -1302,11 +1302,7 @@ RESULT eTSMPEGDecoder::showSinglePic(const char *filename)
 		{
 			struct stat s;
 			fstat(f, &s);
-#if defined(__sh__) // our driver has a different behaviour for iframes
-			if (m_video_clip_fd >= 0)
-				finishShowSinglePic();
-#endif
-#if HAVE_HISILICON
+#if defined(__sh__) || defined(HAVE_HISILICON) || defined(HAVE_HISIAPI) // our driver has a different behaviour for iframes
 			if (m_video_clip_fd >= 0)
 				finishShowSinglePic();
 #endif
@@ -1359,7 +1355,7 @@ RESULT eTSMPEGDecoder::showSinglePic(const char *filename)
 					write(m_video_clip_fd, seq_end, sizeof(seq_end));
 				writeAll(m_video_clip_fd, stuffing, 8192);
 #if not defined(__sh__)
-#if HAVE_HISILICON
+#if HAVE_HISILICON || defined(HAVE_HISIAPI)
 				;
 #else
 				m_showSinglePicTimer->start(150, true);
