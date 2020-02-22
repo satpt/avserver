@@ -68,7 +68,7 @@ void eFilePushThread::thread()
 		off_t current_span_offset = 0;
 		size_t current_span_remaining = 0;
 
-#if defined(__sh__) && !defined(HAVE_HISIAPI)
+#if defined(__sh__)
 		// opens video device for the reverse playback workaround
 		// Changes in this file are cause e2 doesnt tell the player to play reverse
 		int fd_video = open("/dev/dvb/adapter0/video0", O_RDONLY);
@@ -80,7 +80,7 @@ void eFilePushThread::thread()
 		{
 			if (m_sg && !current_span_remaining)
 			{
-#if defined(__sh__) && !defined(HAVE_HISIAPI) // tells the player to play in reverse
+#if defined(__sh__) // tells the player to play in reverse
 #define VIDEO_DISCONTINUITY _IO('o', 84)
 #define DVB_DISCONTINUITY_SKIP 0x01
 #define DVB_DISCONTINUITY_CONTINUOUS_REVERSE 0x02
@@ -159,7 +159,7 @@ void eFilePushThread::thread()
 					{
 					case 0:
 						eDebug("[eFilePushThread] wait for driver eof timeout");
-#if defined(__sh__) && !defined(HAVE_HISIAPI) // Fix to ensure that event evtEOF is called at end of playbackl part 2/3
+#if defined(__sh__) // Fix to ensure that event evtEOF is called at end of playbackl part 2/3
 						if (already_empty)
 						{
 							break;
@@ -239,7 +239,7 @@ void eFilePushThread::thread()
 #if HAVE_CPULOADFIX
 							sleep(2);
 #endif
-#if HAVE_HISILICON
+#if HAVE_HISILICON || HAVE_HISIAPI
 							usleep(100000);
 #endif
 #if HAVE_ALIEN5
@@ -258,7 +258,7 @@ void eFilePushThread::thread()
 				}
 
 				eofcount = 0;
-#if defined(__sh__) && !defined(HAVE_HISIAPI) // Fix to ensure that event evtEOF is called at end of playbackl part 3/3
+#if defined(__sh__) // Fix to ensure that event evtEOF is called at end of playbackl part 3/3
 				already_empty = false;
 #endif
 				m_current_position += buf_end;
@@ -270,7 +270,7 @@ void eFilePushThread::thread()
 			usleep(10);
 #endif
 		}
-#if defined(__sh__) && !defined(HAVE_HISIAPI) // closes video device for the reverse playback workaround
+#if defined(__sh__) // closes video device for the reverse playback workaround
 		close(fd_video);
 #endif
 		sendEvent(evtStopped);
@@ -573,7 +573,7 @@ void eFilePushThreadRecorder::thread()
 				break;
 			}
 			if (errno == EINTR || errno == EBUSY || errno == EAGAIN)
-#if HAVE_HISILICON
+#if HAVE_HISILICON || HAVE_HISIAPI
 				usleep(100000);
 #endif
 			continue;
