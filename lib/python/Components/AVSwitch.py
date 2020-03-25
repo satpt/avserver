@@ -626,20 +626,13 @@ def InitAVSwitch():
 		# TRANSLATORS: (aspect ratio policy: black bars on left/right) in doubt, keep english term.
 		policy_choices.update({"pillarbox": _("Pillarbox")})
 
-	if "panscan" in policy_choices_raw:
-		# DRIVER BUG:	"panscan" in /proc actually does "pillarbox" (That's probably why an alias to it named "pillarbox" existed)!
-		#		Interpret "panscan" setting with a "Pillarbox" text in order to show the correct value in GUI
-
-		# TRANSLATORS: (aspect ratio policy: black bars on left/right) in doubt, keep english term.
-		policy_choices.update({"panscan": _("Pillarbox")})
-
 	if "letterbox" in policy_choices_raw:
-		# DRIVER BUG:	"letterbox" in /proc actually does pan&scan
-		#		"letterbox" and 4:3 content on 16:9 TVs is mutually exclusive, as "letterbox" is the method to show wide content on narrow TVs
-		#		Probably the bug arose as the driver actually does the same here as it would for wide content on narrow TVs (It stretches the picture to fit width)
-		
+		# TRANSLATORS: (aspect ratio policy: black bars on left/right) in doubt, keep english term.
+		policy_choices.update({"letterbox": _("Pillarbox")})
+
+	if "panscan" in policy_choices_raw:
 		# TRANSLATORS: (aspect ratio policy: Fit width, cut/crop top and bottom (Maintain aspect ratio))
-		policy_choices.update({"letterbox": _("Pan&scan")})
+		policy_choices.update({"panscan": _("Pan&scan")})
 
 	if "nonliner" in policy_choices_raw and not "nonlinear" in policy_choices_raw:
 		# TRANSLATORS: (aspect ratio policy: display as fullscreen, with stretching the left/right (Center 50% of picture maintain aspect, left/right 25% lose aspect heaver than on linear stretch))
