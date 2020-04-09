@@ -743,7 +743,7 @@ int eDVBFrontend::openFrontend()
 			eWarning("[eDVBFrontend] frontend %d already opened", m_dvbid);
 		if (m_dvbversion == 0)
 		{
-			m_dvbversion = DVB_VERSION(3, 0);
+			m_dvbversion = DVB_VERSION(DVB_API_VERSION, DVB_API_VERSION_MINOR);
 #if defined DTV_API_VERSION
 			struct dtv_property p;
 			memset(&p, 0, sizeof(p));
