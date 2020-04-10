@@ -1302,16 +1302,13 @@ RESULT eTSMPEGDecoder::showSinglePic(const char *filename)
 		{
 			struct stat s;
 			fstat(f, &s);
-#if defined(__sh__) || defined(HAVE_HISILICON) || defined(HAVE_HISIAPI) // our driver has a different behaviour for iframes
+#if defined(__sh__) || defined(HAVE_HISILICON) // our driver has a different behaviour for iframes
 			if (m_video_clip_fd >= 0)
 				finishShowSinglePic();
 #endif
 			if (m_video_clip_fd == -1)
-#ifdef HAVE_HISIAPI
-				m_video_clip_fd = open("/dev/player/video0", O_WRONLY);
-#else
 				m_video_clip_fd = open("/dev/dvb/adapter0/video0", O_WRONLY);
-#endif
+
 			if (m_video_clip_fd >= 0)
 			{
 				bool seq_end_avail = false;
@@ -1355,7 +1352,7 @@ RESULT eTSMPEGDecoder::showSinglePic(const char *filename)
 					write(m_video_clip_fd, seq_end, sizeof(seq_end));
 				writeAll(m_video_clip_fd, stuffing, 8192);
 #if not defined(__sh__)
-#if HAVE_HISILICON || defined(HAVE_HISIAPI)
+#if HAVE_HISILICON
 				;
 #else
 				m_showSinglePicTimer->start(150, true);
