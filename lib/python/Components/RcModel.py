@@ -241,7 +241,7 @@ class RcModel:
 			remotefolder = 'hardkernel'
 		elif boxtype in ('poplar'):
 			remotefolder = 'poplar'
-		elif boxtype in ('pixel'):
+		elif boxtype in ('ismart','pixel','ppremium'):
 			remotefolder = 'pixel'
 		return remotefolder
 		

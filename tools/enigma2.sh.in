@@ -175,9 +175,9 @@ case $ret in
 	1)
 		touch /etc/enigma2/.deep
 		model=`cat /proc/stb/info/model`
-		if [ $model == "pixel" ]; then
-			echo -n "off" > /proc/stb/hdmi/output
-			systemctl stop enigma2
+		if [ $model == "ismart" ] || [ $model == "pixel" ] || [ $model == "ppremium" ]; then
+			echo "----" > /dev/player/panel
+			echo -n "standby" > /sys/power/state
 		else
 			/sbin/halt
 		fi
