@@ -2,43 +2,67 @@
 # Created by: leandrotsampa
 # E-Mail: leandrotsampa@yahoo.com.br
 
-DriverDate = "20200218"
+def getValueFromFile(file, return_if_failed):
+	try:
+		fd = open(file, "r")
+		return fd.read().rstrip('\n')
+	except:
+		return return_if_failed
 
 def getMachineBuild():
-	return "pixel"
+	return getValueFromFile("/proc/stb/info/model", "")
 
 def getMachineMake():
 	return getMachineBuild()
 
 def getMachineProcModel():
-	return "hisilicon"
+	return getValueFromFile("/proc/stb/info/boxtype", "")
 
 def getMachineBrand():
-	return "Atto"
+	if getMachineBuild() in [ "ismart", "pixel", "ppremium" ]:
+		return "Atto"
+	elif getMachineBuild() in [ "poplar" ]:
+		return "96Boards"
+	elif getMachineBuild() in [ "u5pvr" ]:
+		return "SmartSTB"
+	elif getMachineBuild() in [ "smini" ]:
+		return "Formuler"
+	else:
+		return "Unknown"
 
 def getMachineName():
-	if getMachineBuild() == "pixel":
+	if getMachineBuild() == "ismart":
+		return "i-Smart"
+	elif getMachineBuild() == "pixel":
 		return "Pixel"
+	elif getMachineBuild() == "ppremium":
+		return "Pixel Premium"
+	elif getMachineBuild() == "poplar":
+		return "Poplar"
+	elif getMachineBuild() == "u5pvr":
+		return "U5-PVR"
+	elif getMachineBuild() == "smini":
+		return "S-Mini"
 	else:
 		return "Unknown"
 
 def getMachineMtdKernel():
-	return "mmcblk0p1"
+	return "mmcblk0p11"
 
 def getMachineKernelFile():
-	return "kernel_auto.bin"
+	return "boot.img"
 
 def getMachineMtdRoot():
-	return "mmcblk0p4"
+	return "mmcblk1"
 
 def getMachineRootFile():
-	return "rootfs.tar.bz2"
+	return "e2d-armhf-pixel.img"
 
 def getMachineMKUBIFS():
-	return "-m 2048 -e 126976 -c  "
+	return ""
 
 def getMachineUBINIZE():
-	return "-m 2048 -p 128KiB"
+	return ""
 
 def getBoxType():
 	return getMachineBuild()
@@ -50,7 +74,11 @@ def getOEVersion():
 	return "OE-Alliance 4.4"
 
 def getDriverDate():
-	return DriverDate
+	# apt install python-dateutil
+	from dateutil.parser import parse
+	kVersion = getValueFromFile("/proc/version", "")
+	kDateTime = parse(kVersion[kVersion.index("SMP ")+4:])
+	return kDateTime.strftime('%Y%m%d')
 
 def getImageVersion():
 	return "6.4"
@@ -71,7 +99,7 @@ def getImageFolder():
     return "atto/%s" % getMachineBuild()
 
 def getImageFileSystem():
-    return "tar.bz2 "
+    return "img"
 
 def getImageArch():
     return "armv7a-neon"
