@@ -2396,15 +2396,13 @@ class ChannelSelection(ChannelSelectionBase, ChannelSelectionEdit, ChannelSelect
 		if time:
 			self.pipzaptimer.callback.append(self.hidePipzapMessage)
 			self.pipzaptimer.startLongTimer(time)
-		if hasattr(self.session, "pip"):
-			self.session.pip.active()
+		self.session.pip.active()
 
 	def hidePipzapMessage(self):
 		if self.pipzaptimer.isActive():
 			self.pipzaptimer.callback.remove(self.hidePipzapMessage)
 			self.pipzaptimer.stop()
-		if hasattr(self.session, "pip"):
-			self.session.pip.inactive()
+		self.session.pip.inactive()
 
 	def togglePipzapSidebySide(self):
 		assert self.session.pip
