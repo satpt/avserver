@@ -3647,7 +3647,7 @@ bool eDVBFrontend::isPreferred(int preferredFrontend, int slotid)
 		return (preferredFrontend >= 0 && slotid == preferredFrontend);
 }
 
-int eDVBFrontend::isCompatibleWith(ePtr<iDVBFrontendParameters> &feparm)
+int eDVBFrontend::isCompatibleWith(ePtr<iDVBFrontendParameters> &feparm, bool is_configured_sat)
 {
 	int type;
 	int types;

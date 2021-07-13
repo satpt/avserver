@@ -216,8 +216,8 @@ public:
 	eDVBTransponderData(struct dtv_property *dtvproperties, unsigned int propertycount, bool original);
 
 	int getInversion() const;
-	int getFrequency() const;
-	int getSymbolRate() const;
+	unsigned int getFrequency() const;
+	unsigned int  getSymbolRate() const;
 	int getOrbitalPosition() const;
 	int getFecInner() const;
 	int getModulation() const;
@@ -254,8 +254,8 @@ public:
 
 	std::string getTunerType() const;
 	int getInversion() const;
-	int getFrequency() const;
-	int getSymbolRate() const;
+	unsigned int getFrequency() const;
+	unsigned int  getSymbolRate() const;
 	int getOrbitalPosition() const;
 	int getFecInner() const;
 	int getModulation() const;
@@ -282,8 +282,8 @@ public:
 
 	std::string getTunerType() const;
 	int getInversion() const;
-	int getFrequency() const;
-	int getSymbolRate() const;
+	unsigned int getFrequency() const;
+	unsigned int  getSymbolRate() const;
 	int getFecInner() const;
 	int getModulation() const;
 	int getSystem() const;
@@ -301,7 +301,7 @@ public:
 
 	std::string getTunerType() const;
 	int getInversion() const;
-	int getFrequency() const;
+	unsigned int getFrequency() const;
 	int getBandwidth() const;
 	int getCodeRateLp() const;
 	int getCodeRateHp() const;
@@ -325,7 +325,7 @@ public:
 
 	std::string getTunerType() const;
 	int getInversion() const;
-	int getFrequency() const;
+	unsigned int getFrequency() const;
 	int getModulation() const;
 	int getSystem() const;
 	int getSystems() const;
