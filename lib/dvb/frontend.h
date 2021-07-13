@@ -198,7 +198,7 @@ public:
 	void getFrontendData(ePtr<iDVBFrontendData> &dest);
 
 	bool isPreferred(int preferredFrontend, int slotid);
-	int isCompatibleWith(ePtr<iDVBFrontendParameters> &feparm);
+	int isCompatibleWith(ePtr<iDVBFrontendParameters> &feparm, bool is_configured_sat = false);
 	int getDVBID() { return m_dvbid; }
 	int getSlotID() { return m_slotid; }
 	bool setSlotInfo(int id, const char *descr, bool enabled, bool isDVBS2, int frontendid);

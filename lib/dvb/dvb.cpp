@@ -1070,7 +1070,7 @@ RESULT eDVBResourceManager::allocateFrontend(ePtr<eDVBAllocatedFrontend> &fe, eP
 		}
 		else
 		{
-			c = i->m_frontend->isCompatibleWith(feparm);
+			c = i->m_frontend->isCompatibleWith(feparm, is_configured_sat);
 		}
 
 		if (c)	/* if we have at least one frontend which is compatible with the source, flag this. */
