@@ -8,6 +8,7 @@
 #include <lib/base/eerror.h>
 
 #include "absdiff.h"
+
 #define SEC_DEBUG
 
 #ifdef SEC_DEBUG
@@ -160,7 +161,7 @@ int eDVBSatelliteEquipmentControl::canTune(const eDVBFrontendParametersSatellite
 					}
 					else
 					{
-						if ( sat.frequency > lnb_param.m_lof_threshold )
+						if ((unsigned)sat.frequency > lnb_param.m_lof_threshold)
 							band |= 1;
 						if (!(sat.polarisation & eDVBFrontendParametersSatellite::Polarisation_Vertical))
 							band |= 2;
@@ -219,7 +220,7 @@ int eDVBSatelliteEquipmentControl::canTune(const eDVBFrontendParametersSatellite
 								else
 									ret += 10;
 							}
-							eSecDebugNoSimulate("ret3 %d", ret);
+							eSecDebugNoSimulate("[eDVBSatelliteEquipmentControl] ret3 %d", ret);
 						}
 						else // current fe is dependent of another tuner ... (so this fe can't turn the rotor!)
 						{
@@ -241,9 +242,9 @@ int eDVBSatelliteEquipmentControl::canTune(const eDVBFrontendParametersSatellite
 
 					if (ret && !is_unicable)
 					{
-						int lof = sat.frequency > lnb_param.m_lof_threshold ?
+						int lof = (unsigned)sat.frequency > lnb_param.m_lof_threshold ?
 							lnb_param.m_lof_hi : lnb_param.m_lof_lo;
-						int tuner_freq = abs(sat.frequency - lof);
+						unsigned int tuner_freq = absdiff(sat.frequency, lof);
 						if (tuner_freq < fe_info.frequency_min || tuner_freq > fe_info.frequency_max)
 						{
 							eSecDebugNoSimulate("[eDVBSatelliteEquipmentControl] can't tune! tuner frequency %d not in range: frequency_min %d frequency_max %d", tuner_freq, fe_info.frequency_min, fe_info.frequency_max);
@@ -479,7 +480,7 @@ RESULT eDVBSatelliteEquipmentControl::prepare(iDVBFrontend &frontend, const eDVB
 			}
 			else
 			{
-				if ( sat.frequency > lnb_param.m_lof_threshold )
+				if ((unsigned)sat.frequency > lnb_param.m_lof_threshold)
 					band |= 1;
 				if (!(sat.polarisation & eDVBFrontendParametersSatellite::Polarisation_Vertical))
 					band |= 2;
@@ -492,9 +493,9 @@ RESULT eDVBSatelliteEquipmentControl::prepare(iDVBFrontend &frontend, const eDVB
 			if(!is_unicable)
 			{
 				// calc Frequency
-				frequency = roundMulti(ifreq, 125); //round to multiple of 125
-
-				frontend.setData(eDVBFrontend::FREQ_OFFSET, lof);
+				int local = absdiff(sat.frequency, lof);
+				frequency = ((((local * 2) / 125) + 1) / 2) * 125;
+				frontend.setData(eDVBFrontend::FREQ_OFFSET, sat.frequency - frequency);
 
 				/* Dishpro bandstacking HACK */
 				if (lnb_param.m_lof_threshold == 1000)
@@ -1417,12 +1418,8 @@ RESULT eDVBSatelliteEquipmentControl::clear()
 		it->m_frontend->setData(eDVBFrontend::ROTOR_CMD, -1);
 		it->m_frontend->setData(eDVBFrontend::SATCR, -1);
 
-		if (it->m_frontend->is_FBCTuner())
-		{
-			eFBCTunerManager *fbcmng = eFBCTunerManager::getInstance();
-			if (fbcmng)
-				fbcmng->setDefaultFBCID(*it);
-		}
+		if (it->m_frontend->is_FBCTuner() && ((fbcmng = eFBCTunerManager::getInstance())))
+			fbcmng->SetDefaultFBCID(*it);
 	}
 
 	for (eSmartPtrList<eDVBRegisteredFrontend>::iterator it(m_avail_simulate_frontends.begin()); it != m_avail_simulate_frontends.end(); ++it)
