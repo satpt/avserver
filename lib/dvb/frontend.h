@@ -225,7 +225,7 @@ public:
 	const dvb_frontend_info getFrontendInfo() const { return fe_info; }
 	const dvb_frontend_info getFrontendInfo(fe_delivery_system_t delsys)  { return m_fe_info[delsys]; }
 	bool is_FBCTuner() { return m_fbc; }
-	void setFBCTuner(bool enable) { m_fbc = enable; }
+	void set_FBCTuner(bool yesno) { m_fbc = yesno; }
 	bool getEnabled() { return m_enabled; }
 	void setEnabled(bool enable) { m_enabled = enable; }
 	void setUSBTuner(bool yesno) { m_is_usbtuner = yesno; }

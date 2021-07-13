@@ -2,9 +2,15 @@
 #define __dvb_sec_h
 
 #include <lib/dvb/idvb.h>
+#include <lib/dvb/fbc.h>
 #include <list>
 
-#include <lib/dvb/fbc.h>
+typedef enum
+{
+	SatCR_format_none = 0,
+	SatCR_format_unicable = 1,
+	SatCR_format_jess = 2
+} SatCR_format_t;
 
 #ifndef SWIG
 class eSecCommand
