@@ -2,9 +2,9 @@ name: enigma2 build
 
 on:
   push:
-    branches: [ 7.0 ]
+    branches: [ FCC ]
   pull_request:
-    branches: [ 7.0 ]
+    branches: [ FCC ]
 
 jobs:
   build:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gcc: [8, 9, 10, 11]
+        gcc: [10, 11]
     steps:
       - name: Install prerequisites
         run: |
@@ -40,7 +40,7 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          ref: '7.0'
+          ref: 'FCC'
       - uses: actions/setup-python@v2
         with:
           python-version: '3.9'
