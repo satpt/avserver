@@ -11,7 +11,7 @@
 class iFilePushScatterGather
 {
 public:
-	virtual void getNextSourceSpan(off_t current_offset, size_t bytes_read, off_t &start, size_t &size, int blocksize)=0;
+	virtual void getNextSourceSpan(off_t current_offset, size_t bytes_read, off_t &start, size_t &size, int blocksize, int &sof)=0;
 	virtual ~iFilePushScatterGather() {}
 #if defined(__sh__)
 	//Changes in this file are cause e2 doesnt tell the player to play reverse
@@ -37,7 +37,7 @@ public:
 	void setStreamMode(int);
 	void setScatterGather(iFilePushScatterGather *);
 
-	enum { evtEOF, evtReadError, evtWriteError, evtUser, evtStopped };
+	enum { evtEOF, evtReadError, evtWriteError, evtUser, evtStopped, evtFlush };
 	sigc::signal1<void,int> m_event;
 
 		/* you can send private events if you want */
@@ -49,9 +49,11 @@ private:
 	int prio;
 	iFilePushScatterGather *m_sg;
 	int m_stop;
+	bool m_stopped;
 	int m_fd_dest;
 	int m_send_pvr_commit;
 	int m_stream_mode;
+	int m_sof;
 	int m_blocksize;
 	size_t m_buffersize;
 	unsigned char* m_buffer;
@@ -79,14 +81,14 @@ public:
 	void stop();
 	void start(int sourcefd);
 
-	enum { evtEOF, evtReadError, evtWriteError, evtUser, evtStopped };
+	enum { evtEOF, evtReadError, evtWriteError, evtUser, evtStopped, evtRetune };
 	sigc::signal1<void,int> m_event;
 
 	int getProtocol() { return m_protocol;}
-        void setProtocol(int i){ m_protocol = i;}
-        void setSession(int se, int st) { m_session_id = se; m_stream_id = st;}
+	void setProtocol(int i){ m_protocol = i;}
+	void setSession(int se, int st) { m_session_id = se; m_stream_id = st;}
 	int read_dmx(int fd, void *m_buffer, int size);
-	int pushReply(void *buf, int len);	
+	int pushReply(void *buf, int len);
 	void sendEvent(int evt);
 	static int64_t getTick();
 	static int read_ts(int fd, unsigned char *buf, int size);
@@ -105,6 +107,7 @@ protected:
 	unsigned int m_overflow_count;
 private:
 	int m_stop;
+	bool m_stopped;
 	eFixedMessagePump<int> m_messagepump;
 	void recvEvent(const int &evt);
 	int m_protocol, m_session_id, m_stream_id, m_packet_no;

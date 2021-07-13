@@ -37,11 +37,9 @@ eFilePushThread::eFilePushThread(int io_prio_class, int io_prio_level, int block
 eFilePushThread::~eFilePushThread()
 {
 	stop(); /* eThread is borked, always call stop() from d'tor */
-	free(m_buffer);
-}
-
-static void signal_handler(int x)
-{
+	if (m_buffer) {
+		free(m_buffer);
+	}
 }
 
 static void ignore_but_report_signals()
@@ -67,7 +65,7 @@ void eFilePushThread::thread()
 		size_t bytes_read = 0;
 		off_t current_span_offset = 0;
 		size_t current_span_remaining = 0;
-
+		m_sof = 0;
 #if defined(__sh__)
 		// opens video device for the reverse playback workaround
 		// Changes in this file are cause e2 doesnt tell the player to play reverse
@@ -92,7 +90,7 @@ void eFilePushThread::thread()
 					int rc = ioctl(fd_video, VIDEO_DISCONTINUITY, (void *)param);
 				}
 #endif
-				m_sg->getNextSourceSpan(m_current_position, bytes_read, current_span_offset, current_span_remaining, m_blocksize);
+				m_sg->getNextSourceSpan(m_current_position, bytes_read, current_span_offset, current_span_remaining, m_blocksize, m_sof);
 				ASSERT(!(current_span_remaining % m_blocksize));
 				m_current_position = current_span_offset;
 				bytes_read = 0;
@@ -107,7 +105,7 @@ void eFilePushThread::thread()
 			/* align to blocksize */
 			maxread -= maxread % m_blocksize;
 
-			if (maxread)
+			if (maxread && !m_sof)
 			{
 #ifdef SHOW_WRITE_TIME
 				struct timeval starttime;
@@ -129,9 +127,7 @@ void eFilePushThread::thread()
 				buf_end = 0;
 				/* Check m_stop after interrupted syscall. */
 				if (m_stop)
-				{
 					break;
-				}
 				if (errno == EINTR || errno == EBUSY || errno == EAGAIN)
 					continue;
 				if (errno == EOVERFLOW)
@@ -147,7 +143,7 @@ void eFilePushThread::thread()
 			if (d)
 				buf_end -= d;
 
-			if (buf_end == 0)
+			if (buf_end == 0 || m_sof == 1)
 			{
 #ifndef HAVE_ALIEN5				/* on EOF, try COMMITting once. */
 				if (m_send_pvr_commit)
@@ -191,7 +187,10 @@ void eFilePushThread::thread()
 				   over and over until somebody responds.
 
 				   in stream_mode, think of evtEOF as "buffer underrun occurred". */
-				sendEvent(evtEOF);
+				if (m_sof == 0)
+					sendEvent(evtEOF);
+				else
+					sendEvent(evtUser); // start of file event
 
 				if (m_stream_mode)
 				{
@@ -279,16 +278,17 @@ void eFilePushThread::thread()
 			eSingleLocker lock(m_run_mutex);
 			m_run_state = 0;
 			m_run_cond.signal(); /* Tell them we're here */
-			while (m_stop == 2)
-			{
+			while (m_stop == 2) {
 				eDebug("[eFilePushThread] PAUSED");
 				m_run_cond.wait(m_run_mutex);
 			}
 			if (m_stop == 0)
 				m_run_state = 1;
 		}
-
 	} while (m_stop == 0);
+
+	m_stopped = true;
+
 	eDebug("[eFilePushThread] STOP");
 }
 
@@ -299,6 +299,7 @@ void eFilePushThread::start(ePtr<iTsSource> &source, int fd_dest)
 	m_current_position = 0;
 	m_run_state = 1;
 	m_stop = 0;
+	m_stopped = false;
 	run();
 }
 
@@ -306,7 +307,11 @@ void eFilePushThread::stop()
 {
 	/* if we aren't running, don't bother stopping. */
 	if (m_stop == 1)
+	{
+		eDebug("[eFilePushThread]: stopping thread that is already stopped");
 		return;
+	}
+
 	m_stop = 1;
 	eDebug("[eFilePushThread] stopping thread");
 	m_run_cond.signal(); /* Break out of pause if needed */
@@ -327,8 +332,7 @@ void eFilePushThread::pause()
 	m_stop = 2;
 	sendSignal(SIGUSR1);
 	m_run_cond.signal(); /* Trigger if in weird state */
-	while (m_run_state)
-	{
+	while (m_run_state) {
 		eDebug("[eFilePushThread] waiting for pause");
 		m_run_cond.wait(m_run_mutex);
 	}
@@ -381,12 +385,13 @@ void eFilePushThread::filterRecordData(const unsigned char *data, int len)
 {
 }
 
-eFilePushThreadRecorder::eFilePushThreadRecorder(unsigned char *buffer, size_t buffersize) : m_fd_source(-1),
-																							 m_buffersize(buffersize),
-																							 m_buffer(buffer),
-																							 m_overflow_count(0),
-																							 m_stop(1),
-																							 m_messagepump(eApp, 0)
+eFilePushThreadRecorder::eFilePushThreadRecorder(unsigned char* buffer, size_t buffersize):
+	m_fd_source(-1),
+	m_buffersize(buffersize),
+	m_buffer(buffer),
+	m_overflow_count(0),
+	m_stop(1),
+	m_messagepump(eApp, 0)
 {
 	m_protocol = m_stream_id = m_session_id = m_packet_no = 0;
 	CONNECT(m_messagepump.recv_msg, eFilePushThreadRecorder::recvEvent);
@@ -410,7 +415,7 @@ eFilePushThreadRecorder::eFilePushThreadRecorder(unsigned char *buffer, size_t b
 int eFilePushThreadRecorder::pushReply(void *buf, int len)
 {
 	m_reply.insert(m_reply.end(), (unsigned char *)buf, (unsigned char *)buf + len);
-	eDebug("pushed reply of %d bytes", len);
+	eDebug("[eFilePushThread] pushed reply of %d bytes", len);
 	return 0;
 }
 
@@ -432,7 +437,7 @@ int eFilePushThreadRecorder::read_ts(int fd, unsigned char *buf, int size)
 	{
 		rb = ::read(fd, buf + bytes, left);
 		if (rb > 0 && ((bytes % 188) != 0))
-			eDebug("%s read %d out of %d bytes, total %d, size %d, fd %d", ((bytes + rb) % 188) ? "incomplete" : "completed", rb, left, bytes, size, fd);
+			eDebug("[eFilePushThread] %s read %d out of %d bytes, total %d, size %d, fd %d", ((bytes + rb) % 188) ? "incomplete" : "completed", rb, left, bytes, size, fd);
 
 		if (rb <= 0 && errno != EAGAIN && errno != EINTR)
 			return rb;
@@ -454,6 +459,7 @@ int eFilePushThreadRecorder::read_ts(int fd, unsigned char *buf, int size)
 
 	return bytes;
 }
+
 int eFilePushThreadRecorder::read_dmx(int fd, void *m_buffer, int size)
 {
 	unsigned char *buf;
@@ -476,14 +482,14 @@ int eFilePushThreadRecorder::read_dmx(int fd, void *m_buffer, int size)
 
 		if (bytes <= 0 && errno != EAGAIN && errno != EINTR)
 		{
-			eDebug("error reading from DMX handle %d, errno %d: %m", fd, errno);
+			eDebug("[eFilePushThread] error reading from DMX handle %d, errno %d: %m", fd, errno);
 			break;
 		}
 
 		if (bytes > 0)
 		{
 			if ((bytes % 188) != 0)
-				eDebug("incomplete packet read from %d with size %d", fd, bytes);
+				eDebug("[eFilePushThread] incomplete packet read from %d with size %d", fd, bytes);
 
 			m_packet_no++;
 			it++;
@@ -495,7 +501,7 @@ int eFilePushThreadRecorder::read_dmx(int fd, void *m_buffer, int size)
 				if ((b[3] & 0x80)) // mark decryption failed if not decrypted by enigma
 				{
 					if ((errs++ % 100) == 0)
-						eDebug("decrypt errs %d, pid %d, m_buffer %p, pos %d, buf %p, i %d: %02X %02X %02X %02X", errs, pid, m_buffer, pos, buf, i, b[0], b[1], b[2], b[3]);
+						eDebug("[eFilePushThread] decrypt errs %d, pid %d, m_buffer %p, pos %d, buf %p, i %d: %02X %02X %02X %02X", errs, pid, m_buffer, pos, buf, i, b[0], b[1], b[2], b[3]);
 					b[1] |= 0x1F;
 					b[2] |= 0xFF;
 				}
@@ -515,7 +521,7 @@ int eFilePushThreadRecorder::read_dmx(int fd, void *m_buffer, int size)
 			pos = m_reply.size();
 			buf[0] = 0;
 			memcpy(m_buffer, m_reply.data(), pos);
-			eDebug("added reply of %d bytes", pos, m_buffer);
+			eDebug("[eFilePushThread] added reply of %d bytes", pos);
 			m_reply.clear();
 			break; // reply to the server ASAP
 		}
@@ -529,7 +535,7 @@ int eFilePushThreadRecorder::read_dmx(int fd, void *m_buffer, int size)
 	}
 	uint64_t ts = getTick() - start;
 	if (ts > 1000)
-		eDebug("returning %d bytes from %d, last read %d bytes in %jd ms (iteration %d)", pos, size, bytes, ts, m_packet_no);
+		eDebug("[eFilePushThread] returning %d bytes from %d, last read %d bytes in %jd ms (iteration %d)", pos, size, bytes, ts, m_packet_no);
 	if (pos == 0)
 		return bytes;
 	return pos;
@@ -554,7 +560,7 @@ void eFilePushThreadRecorder::thread()
 		int flags = fcntl(m_fd_source, F_GETFL, 0);
 		flags |= O_NONBLOCK;
 		if (fcntl(m_fd_source, F_SETFL, flags) == -1)
-			eDebug("failed setting DMX handle %d in non-blocking mode, error %d: %s", m_fd_source, errno, strerror(errno));
+			eDebug("[eFilePushThread] failed setting DMX handle %d in non-blocking mode, error %d: %s", m_fd_source, errno, strerror(errno));
 	}
 	/* m_stop must be evaluated after each syscall. */
 	while (!m_stop)
@@ -603,7 +609,7 @@ void eFilePushThreadRecorder::thread()
 #endif
 		if (w < 0)
 		{
-			eDebug("[eFilePushThreadRecorder] WRITE ERROR, aborting thread: %m");
+			eWarning("[eFilePushThreadRecorder] WRITE ERROR, aborting thread: %m");
 			sendEvent(evtWriteError);
 			break;
 		}
@@ -611,12 +617,14 @@ void eFilePushThreadRecorder::thread()
 	flush();
 	sendEvent(evtStopped);
 	eDebug("[eFilePushThreadRecorder] THREAD STOP");
+	m_stopped = true;
 }
 
 void eFilePushThreadRecorder::start(int fd)
 {
 	m_fd_source = fd;
 	m_stop = 0;
+	m_stopped = false;
 	run();
 }
 
@@ -624,7 +632,11 @@ void eFilePushThreadRecorder::stop()
 {
 	/* if we aren't running, don't bother stopping. */
 	if (m_stop == 1)
+	{
+		eDebug("[eFilePushThreadRecorder] requesting to stop thread but thread is already stopped");
 		return;
+	}
+
 	m_stop = 1;
 	eDebug("[eFilePushThreadRecorder] stopping thread."); /* just do it ONCE. it won't help to do this more than once. */
 	sendSignal(SIGUSR1);

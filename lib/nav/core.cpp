@@ -3,6 +3,9 @@
 #include <lib/python/python.h>
 #include <lib/dvb/idvb.h>
 #include <lib/dvb/dvb.h>
+#if defined(HAVE_FCC_ABILITY)
+#include <lib/dvb/fcc.h>
+#endif
 
 eNavigation* eNavigation::instance;
 
@@ -28,10 +31,20 @@ void eNavigation::recordEvent(iRecordableService* service, int event)
 
 RESULT eNavigation::playService(const eServiceReference &service)
 {
+#if defined(HAVE_FCC_ABILITY)
+	RESULT res = -1;
+	if (m_fccmgr->tryFCCService(service, m_runningService) == -1)
+	{
+		stopService();
+		ASSERT(m_servicehandler);
+		res = m_servicehandler->play(service, m_runningService);
+	}
+#else
 	stopService();
 
 	ASSERT(m_servicehandler);
 	RESULT res = m_servicehandler->play(service, m_runningService);
+#endif
 	if (m_runningService)
 	{
 		m_runningService->setTarget(m_decoder);
@@ -74,6 +87,9 @@ RESULT eNavigation::stopService(void)
 
 		/* kill service. */
 	m_service_event_conn = 0;
+#if defined(HAVE_FCC_ABILITY)
+	m_fccmgr->cleanupFCCService();
+#endif
 	return 0;
 }
 
@@ -226,6 +242,9 @@ eNavigation::eNavigation(iServiceHandler *serviceHandler, int decoder)
 	ASSERT(serviceHandler);
 	m_servicehandler = serviceHandler;
 	m_decoder = decoder;
+#if defined(HAVE_FCC_ABILITY)
+	m_fccmgr = new eFCCServiceManager(this);
+#endif
 	instance = this;
 }
 
