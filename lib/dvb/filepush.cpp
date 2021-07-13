@@ -42,6 +42,11 @@ eFilePushThread::~eFilePushThread()
 	}
 }
 
+static void signal_handler(int x)
+{
+	eDebug("[eFilePush] SIGUSR1 received");
+}
+
 static void ignore_but_report_signals()
 {
 	/* we set the signal to not restart syscalls, so we can detect our signal. */
@@ -555,6 +560,7 @@ void eFilePushThreadRecorder::thread()
 	sigaction(SIGUSR1, &act, 0);
 
 	hasStarted();
+
 	if (m_protocol == _PROTO_RTSP_TCP)
 	{
 		int flags = fcntl(m_fd_source, F_GETFL, 0);
@@ -562,6 +568,7 @@ void eFilePushThreadRecorder::thread()
 		if (fcntl(m_fd_source, F_SETFL, flags) == -1)
 			eDebug("[eFilePushThread] failed setting DMX handle %d in non-blocking mode, error %d: %s", m_fd_source, errno, strerror(errno));
 	}
+
 	/* m_stop must be evaluated after each syscall. */
 	while (!m_stop)
 	{
@@ -638,6 +645,7 @@ void eFilePushThreadRecorder::stop()
 	}
 
 	m_stop = 1;
+
 	eDebug("[eFilePushThreadRecorder] stopping thread."); /* just do it ONCE. it won't help to do this more than once. */
 	sendSignal(SIGUSR1);
 	kill();
