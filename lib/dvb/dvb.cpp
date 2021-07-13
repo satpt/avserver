@@ -1032,27 +1032,40 @@ void eDVBResourceManager::setFrontendType(int index, const char *type, bool appe
 RESULT eDVBResourceManager::allocateFrontend(ePtr<eDVBAllocatedFrontend> &fe, ePtr<iDVBFrontendParameters> &feparm, bool simulate, bool returnScoreOnly)
 {
 	eSmartPtrList<eDVBRegisteredFrontend> &frontends = simulate ? m_simulate_frontend : m_frontend;
-//	ePtr<eDVBRegisteredFrontend> best;
-	eDVBRegisteredFrontend *best = NULL;
-	int bestval = 0;
-	int foundone = 0;
+	eDVBRegisteredFrontend *best, *fbc_fe, *best_fbc_fe;
+	int bestval, foundone, current_fbc_setid, c;
+	bool check_fbc_leaf_linkable, is_configured_sat;
+	long link;
 
-	int check_fbc_linked = 0;
-	eDVBRegisteredFrontend *fbc_fe = NULL;
-	eDVBRegisteredFrontend *best_fbc_fe = NULL;
-	eFBCTunerManager* fbcmng = m_fbc_mng;
+	fbc_fe  = NULL;
+	best_fbc_fe = NULL;
+	best = NULL;
+	bestval = 0;
+	foundone = 0;
+	check_fbc_leaf_linkable = false;
+	current_fbc_setid = -1;
 
 	for (eSmartPtrList<eDVBRegisteredFrontend>::iterator i(frontends.begin()); i != frontends.end(); ++i)
 	{
-		int c = 0;
+		c = 0;
+		is_configured_sat = false;
 		fbc_fe = NULL;
-		if (!check_fbc_linked && i->m_frontend->is_FBCTuner() && fbcmng && fbcmng->canLink(*i))
+		if (i->m_frontend->is_FBCTuner() && m_fbcmng->CanLink(*i))
 		{
-			check_fbc_linked = 1;
-			c = fbcmng->isCompatibleWith(feparm, *i, fbc_fe, simulate);
+			int fbc_setid = m_fbcmng->GetFBCSetID(i->m_frontend->getSlotID());
 
+			if (fbc_setid != current_fbc_setid)
+			{
+				current_fbc_setid = fbc_setid;
+				check_fbc_leaf_linkable = false;
+			}
 
-//			eDebug("[eDVBResourceManager::allocateFrontend] fbcmng->isCompatibleWith slotid : %p (%d), fbc_fe : %p (%d), score : %d", (eDVBRegisteredFrontend *)*i,  i->m_frontend->getSlotID(), fbc_fe, fbc_fe?fbc_fe->m_frontend->getSlotID():-1, c);			
+			if (!check_fbc_leaf_linkable)
+			{
+				c = m_fbcmng->IsCompatibleWith(feparm, *i, fbc_fe, simulate);
+				check_fbc_leaf_linkable = true;
+				//eDebug("[eDVBResourceManager::allocateFrontend] m_fbcmng->isCompatibleWith slotid : %p (%d), fbc_fe : %p (%d), score : %d", (eDVBRegisteredFrontend *)*i, i->m_frontend->ge);
+			}
 		}
 		else
 		{
@@ -1064,21 +1077,13 @@ RESULT eDVBResourceManager::allocateFrontend(ePtr<eDVBAllocatedFrontend> &fe, eP
 
 		if (!i->m_inuse)
 		{
-//			eDebug("[eDVBResourceManager::allocateFrontend] Slot %d, score %d", i->m_frontend->getSlotID(), c);
 			if (c > bestval)
 			{
 				bestval = c;
-//				best = i;
 				best = *i;
 				best_fbc_fe = fbc_fe;
 			}
 		}
-		else
-		{
-//			eDebug("[eDVBResourceManager::allocateFrontend] Slot %d, score %d... but BUSY!!!!!!!!!!!", i->m_frontend->getSlotID(), c);
-		}
-
-		eDVBRegisteredFrontend *tmp = *i;
 	}
 
 	if (returnScoreOnly)
@@ -1088,12 +1093,10 @@ RESULT eDVBResourceManager::allocateFrontend(ePtr<eDVBAllocatedFrontend> &fe, eP
 	
 	if (best)
 	{
-		if (fbcmng && best_fbc_fe)
-		{
-			fbcmng->addLink(best, best_fbc_fe, simulate);
-		}
+		if (best_fbc_fe)
+			m_fbcmng->AddLink(best, best_fbc_fe, simulate);
 
-		fe = new eDVBAllocatedFrontend(best);
+		fe = new eDVBAllocatedFrontend(best, m_fbcmng);
 		return 0;
 	}
 
@@ -1151,7 +1154,7 @@ RESULT eDVBResourceManager::allocateFrontendByIndex(ePtr<eDVBAllocatedFrontend> 
 					prev->m_frontend->getData(eDVBFrontend::LINKED_PREV_PTR, tmp);
 				}
 			}
-			fe = new eDVBAllocatedFrontend(i);
+			fe = new eDVBAllocatedFrontend(i, m_fbcmng);
 			return 0;
 		}
 alloc_fe_by_id_not_possible:
@@ -1675,32 +1678,40 @@ int eDVBResourceManager::canAllocateFrontend(ePtr<iDVBFrontendParameters> &fepar
 {
 	eSmartPtrList<eDVBRegisteredFrontend> &frontends = simulate ? m_simulate_frontend : m_frontend;
 	ePtr<eDVBRegisteredFrontend> best;
-	int bestval = 0;
-	int check_fbc_linked = 0;
-	eDVBRegisteredFrontend *fbc_fe = NULL;
-//	eDVBRegisteredFrontend *best_fbc_fe = NULL;
-	eFBCTunerManager *fbcmng = m_fbc_mng;
+	int bestval, current_fbc_setid, c;
+	bool check_fbc_leaf_linkable;
+
+	bestval = 0;
+	check_fbc_leaf_linkable = false;
+	current_fbc_setid = -1;
 
 	for (eSmartPtrList<eDVBRegisteredFrontend>::iterator i(frontends.begin()); i != frontends.end(); ++i)
 	{
 		if (!i->m_inuse)
 		{
-			int c = 0;
-			fbc_fe = NULL;
-			if (!check_fbc_linked && i->m_frontend->is_FBCTuner() && fbcmng && fbcmng->canLink(*i))
+			c = 0;
+			if(i->m_frontend->is_FBCTuner() && m_fbcmng->CanLink(*i))
 			{
-				check_fbc_linked = 1;
-				c = fbcmng->isCompatibleWith(feparm, *i, fbc_fe, simulate);
+				int fbc_setid = m_fbcmng->GetFBCSetID(i->m_frontend->getSlotID());
+
+				if (fbc_setid != current_fbc_setid)
+				{
+					current_fbc_setid = fbc_setid;
+					check_fbc_leaf_linkable = false;
+				}
+
+				if (!check_fbc_leaf_linkable)
+				{
+					eDVBRegisteredFrontend *dummy;
+					c = m_fbcmng->IsCompatibleWith(feparm, *i, dummy, simulate);
+					check_fbc_leaf_linkable = true;
+				}
 			}
 			else
-			{
 				c = i->m_frontend->isCompatibleWith(feparm);
-			}
+
 			if (c > bestval)
-			{
 				bestval = c;
-//				best_fbc_fe = fbc_fe;
-			}
 		}
 	}
 	return bestval;

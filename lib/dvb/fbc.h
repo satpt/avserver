@@ -55,12 +55,12 @@ public:
 	virtual ~eFBCTunerManager();
 	void setDefaultFBCID(eDVBRegisteredFrontend *fe);
 	void updateFBCID(eDVBRegisteredFrontend *next_fe, eDVBRegisteredFrontend *prev_fe);
-	int isCompatibleWith(ePtr<iDVBFrontendParameters> &feparm, eDVBRegisteredFrontend *link_fe, eDVBRegisteredFrontend *&fbc_fe, bool simulate);
-	void addLink(eDVBRegisteredFrontend *link_fe, eDVBRegisteredFrontend *top_fe, bool simulate);
-	void unLink(eDVBRegisteredFrontend *link_fe);
-	bool canLink(eDVBRegisteredFrontend *fe);
+	int IsCompatibleWith(ePtr<iDVBFrontendParameters> &feparm, eDVBRegisteredFrontend *link_fe, eDVBRegisteredFrontend *&fbc_fe, bool simulate);
+	void AddLink(eDVBRegisteredFrontend *link_fe, eDVBRegisteredFrontend *top_fe, bool simulate);
+	void Unlink(eDVBRegisteredFrontend *link_fe);
+	bool CanLink(eDVBRegisteredFrontend *fe);
 	int getLinkedSlotID(int feid) const;
-	int getFBCSetID(int fe_id);
+	int GetFBCSetID(int fe_id);
 	bool isFBCLink(int fe_id);
 };
 
