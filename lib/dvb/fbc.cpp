@@ -184,7 +184,7 @@ int eFBCTunerManager::feSlotID(const eDVBRegisteredFrontend *fe) const
 	return fe->m_frontend->getSlotID();
 }
 
-void eFBCTunerManager::setDefaultFBCID(eDVBRegisteredFrontend *fe)
+void eFBCTunerManager::SetDefaultFBCID(eDVBRegisteredFrontend *fe) const
 {
 	int fe_id = feSlotID(fe);
 	setProcFBCID(fe_id, getDefaultFBCID(fe_id), isLinked(fe));
