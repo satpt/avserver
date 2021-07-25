@@ -6,6 +6,7 @@ from Components.Pixmap import MovingPixmap, MultiPixmap
 from Components.Label import Label
 from Components.ActionMap import ActionMap, queryKeyBinding
 from Components.GUIComponent import GUIComponent
+from Components.Sources.StaticText import StaticText
 from Components.RcModel import rc_model
 from Components.config import config
 from Tools.KeyBindings import getKeyDescription
@@ -14,6 +15,27 @@ import skin
 
 from xml.etree.ElementTree import ElementTree
 from boxbranding import getBoxType
+
+
+class HelpableScreen:
+	def __init__(self):
+		self["helpActions"] = ActionMap(["HelpActions"], {
+			"displayHelp": self.showHelp
+		}, prio=0)
+		self["key_help"] = StaticText(_("HELP"))
+
+	def showHelp(self):
+		try:
+			if self.secondInfoBarScreen and self.secondInfoBarScreen.shown:
+				self.secondInfoBarScreen.hide()
+		except:
+			pass
+		self.session.openWithCallback(self.callHelpAction, HelpMenu, self.helpList)
+
+	def callHelpAction(self, *args):
+		if args:
+			(actionmap, context, action) = args
+			actionmap.action(context, action)
 
 
 class ShowRemoteControl:
@@ -110,14 +132,14 @@ class ShowRemoteControl:
 				self[pic].hide()
 
 
-class HelpMenu(Screen, Rc):
-	def __init__(self, session, list):
+class HelpMenu(Screen, ShowRemoteControl):
+	def __init__(self, session, helpList):
 		Screen.__init__(self, session)
+		ShowRemoteControl.__init__(self)
 		Screen.setTitle(self, _("Help"))
 		self.onSelChanged = []
-		self["list"] = HelpMenuList(list, self.close)
+		self["list"] = HelpMenuList(helpList, self.close)
 		self["list"].onSelChanged.append(self.SelectionChanged)
-		Rc.__init__(self)
 		self["long_key"] = Label("")
 
 		self["actions"] = ActionMap(["WizardActions"],
@@ -150,27 +172,6 @@ class HelpMenu(Screen, Rc):
 		#	arrow.moveTo(selection[1], selection[2], 1)
 		#	arrow.startMoving()
 		#	arrow.show()
-
-
-class HelpableScreen:
-	def __init__(self):
-		self["helpActions"] = ActionMap(["HelpActions"],
-			{
-				"displayHelp": self.showHelp,
-			})
-
-	def showHelp(self):
-		try:
-			if self.secondInfoBarScreen and self.secondInfoBarScreen.shown:
-				self.secondInfoBarScreen.hide()
-		except:
-			pass
-		self.session.openWithCallback(self.callHelpAction, HelpMenu, self.helpList)
-
-	def callHelpAction(self, *args):
-		if args:
-			(actionmap, context, action) = args
-			actionmap.action(context, action)
 
 
 class HelpMenuList(GUIComponent):
