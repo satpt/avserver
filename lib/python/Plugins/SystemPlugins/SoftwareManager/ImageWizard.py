@@ -114,7 +114,7 @@ class ImageWizard(WizardLanguage, ShowRemoteControl):
 	def __init__(self, session):
 		self.xmlfile = resolveFilename(SCOPE_PLUGINS, "SystemPlugins/SoftwareManager/imagewizard.xml")
 		WizardLanguage.__init__(self, session, showSteps=False, showStepSlider=False)
-		Rc.__init__(self)
+		ShowRemoteControl.__init__(self)
 		self.session = session
 		self["wizard"] = Pixmap()
 		self["HelpWindow"] = Pixmap()

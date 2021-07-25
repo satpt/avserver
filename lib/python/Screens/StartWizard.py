@@ -21,7 +21,7 @@ class StartWizard(WizardLanguage, ShowRemoteControl):
 	def __init__(self, session, silent=True, showSteps=False, neededTag=None):
 		self.xmlfile = ["startwizard.xml"]
 		WizardLanguage.__init__(self, session, showSteps=False)
-		Rc.__init__(self)
+		ShowRemoteControl.__init__(self)
 		self["wizard"] = Pixmap()
 		self["HelpWindow"] = Pixmap()
 		self["HelpWindow"].hide()

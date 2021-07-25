@@ -1,14 +1,16 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from enigma import eListboxPythonMultiContent, eListbox, gFont
-from Screens.Screen import Screen
-from Components.Pixmap import MovingPixmap, MultiPixmap
-from Components.Label import Label
+from keyids import KEYIDS
 from Components.ActionMap import ActionMap, queryKeyBinding
 from Components.GUIComponent import GUIComponent
+from Components.Label import Label
+from Components.Pixmap import MovingPixmap, MultiPixmap
+from Components.Sources.List import List
 from Components.Sources.StaticText import StaticText
 from Components.RcModel import rc_model
 from Components.config import config
+from Screens.Screen import Screen
 from Tools.KeyBindings import getKeyDescription
 from Tools.Directories import resolveFilename, SCOPE_SKIN
 import skin

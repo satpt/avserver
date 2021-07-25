@@ -79,7 +79,7 @@ class VideoWizard(WizardLanguage, ShowRemoteControl):
 		self.hw = iAVSwitch
 
 		WizardLanguage.__init__(self, session, showSteps=False, showStepSlider=False)
-		Rc.__init__(self)
+		ShowRemoteControl.__init__(self)
 		self["wizard"] = Pixmap()
 		self["HelpWindow"] = Pixmap()
 		self["HelpWindow"].hide()

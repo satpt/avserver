@@ -197,7 +197,7 @@ class LanguageSelection(Screen):
 class LanguageWizard(LanguageSelection, ShowRemoteControl):
 	def __init__(self, session):
 		LanguageSelection.__init__(self, session)
-		Rc.__init__(self)
+		ShowRemoteControl.__init__(self)
 		global inWizzard
 		inWizzard = True
 		self.onLayoutFinish.append(self.selectKeys)
