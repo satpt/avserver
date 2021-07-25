@@ -166,7 +166,8 @@ from Components.PluginComponent import plugins
 
 profile("LOAD:Wizard")
 from Screens.StartWizard import *
-import Screens.Rc
+#import Screens.Rc
+config.misc.rcused = ConfigInteger(default=1)
 from Tools.BoundFunction import boundFunction
 from Plugins.Plugin import PluginDescriptor
 

@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from Screens.WizardLanguage import WizardLanguage
 from Screens.Wizard import wizardManager
-from Screens.Rc import Rc
+from Screens.HelpMenu import ShowRemoteControl
 from Screens.Screen import Screen
 from Components.Label import Label
 from Components.MenuList import MenuList
@@ -93,7 +93,7 @@ else:
 	backupAvailable = 1
 
 
-class ImageWizard(WizardLanguage, Rc):
+class ImageWizard(WizardLanguage, ShowRemoteControl):
 	skin = """
 		<screen name="ImageWizard" position="0,0" size="720,576" title="Welcome..." flags="wfNoBorder" >
 			<widget name="text" position="153,40" size="340,330" font="Regular;22" />
