@@ -357,7 +357,7 @@ void eEncoder::navigation_event(int encoder_index, int event)
 		if(encoder[encoder_index].state == EncoderContext::state_wait_pmt)
 		{
 			ePtr<iPlayableService> service;
-//			ePtr<iTapService> tservice;
+			ePtr<iTapService> tservice;
 			ePtr<iServiceInformation> info;
 			std::vector<int> pids;
 
