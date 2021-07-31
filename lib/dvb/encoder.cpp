@@ -64,7 +64,13 @@ eEncoder::eEncoder()
 			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/decoder", index);
 
 			if (CFile::parseInt(&decoder_index, filename) < 0)
-				break;
+			{
+				// VU+ 
+				snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/demux", index);
+				if (CFile::parseInt(&decoder_index, filename) < 0)
+					break;
+			}
+
 
 			/* the connected video decoder for "Xtrend" transcoding / encoding or for Broadcom HDMI recording */
 			if((navigation_instance_normal = new eNavigation(service_center, decoder_index)) == nullptr)
