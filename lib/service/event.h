@@ -129,12 +129,13 @@ public:
 	{
 		return getParentalDataList();
 	}
-	
-	static void getEventByData(ePtr<eServiceEvent> &ptr, const std::string& event_name, const std::string& short_description, const std::string& extended_description) { 
+
+	ePtr<eServiceEvent> getEventByData(const std::string& event_name, const std::string& short_description, const std::string& extended_description) { 
 		ptr = new eServiceEvent();
 		ptr->m_event_name = event_name;
 		ptr->m_short_description = short_description;
 		ptr->m_extended_description = extended_description;
+		return ptr
 	}
 
 };
