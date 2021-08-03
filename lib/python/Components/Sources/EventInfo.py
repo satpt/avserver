@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from Components.PerServiceDisplay import PerServiceBase
 from Components.Element import cached
-from enigma import iPlayableService, iServiceInformation, eServiceReference, eEPGCache
+from enigma import iPlayableService, iServiceInformation, eServiceReference, eEPGCache, eServiceEvent
 from Components.Sources.Source import Source
 
 
@@ -29,6 +29,11 @@ class EventInfo(PerServiceBase, Source, object):
 			if not ret or ret.getEventName() == "":
 				refstr = info.getInfoString(iServiceInformation.sServiceref)
 				ret = self.epgQuery(eServiceReference(refstr), -1, self.now_or_next and 1 or 0)
+				if not ret and "4097" in refstr: # No EPG Try to get Meta
+					eventtitle = info.getInfoString(iServiceInformation.sTagTitle)
+					if eventtitle:
+						ret = eServiceEvent()
+						ret.setEventData(eventtitle, "", "")
 		return ret
 
 	event = property(getEvent)
