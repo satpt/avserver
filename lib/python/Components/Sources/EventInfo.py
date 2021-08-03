@@ -32,8 +32,7 @@ class EventInfo(PerServiceBase, Source, object):
 				if not ret and "4097" in refstr: # No EPG Try to get Meta
 					eventtitle = info.getInfoString(iServiceInformation.sTagTitle)
 					if eventtitle:
-						ret = eServiceEvent()
-						ret.setEventData(eventtitle, "", "")
+						ret = eServiceEvent.getEventByData(eventtitle, "", "")
 		return ret
 
 	event = property(getEvent)

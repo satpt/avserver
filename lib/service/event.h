@@ -94,11 +94,6 @@ public:
 	RESULT parseFrom(const std::string& filename, int tsidonid=0);
 	static void setEPGLanguage(const std::string& language) { m_language = language; }
 	static void setEPGLanguageAlternative(const std::string& language) { m_language_alternative = language; }
-	static void setEventData(const std::string& event_name, const std::string& short_description, const std::string& extended_description) { 
-		m_event_name = event_name;
-		m_short_description = short_description;
-		m_extended_description = extended_description;
-	}
 #endif
 	time_t getBeginTime() const { return m_begin; }
 	int getDuration() const { return m_duration; }
@@ -134,6 +129,14 @@ public:
 	{
 		return getParentalDataList();
 	}
+	
+	static void getEventByData(ePtr<eServiceEvent> &ptr, const std::string& event_name, const std::string& short_description, const std::string& extended_description) { 
+		ptr = new eServiceEvent();
+		ptr->m_event_name = event_name;
+		ptr->m_short_description = short_description;
+		ptr->m_extended_description = extended_description;
+	}
+
 };
 SWIG_TEMPLATE_TYPEDEF(ePtr<eServiceEvent>, eServiceEvent);
 SWIG_EXTEND(ePtr<eServiceEvent>,
@@ -146,12 +149,6 @@ SWIG_EXTEND(ePtr<eServiceEvent>,
 	static void setEPGLanguageAlternative(const std::string& language)
 	{
 		eServiceEvent::setEPGLanguageAlternative(language);
-	}
-);
-SWIG_EXTEND(ePtr<eServiceEvent>,
-	static void setEventData(const std::string& event_name, const std::string& short_description, const std::string& extended_description)
-	{
-		eServiceEvent::setEventData(event_name, short_description, extended_description);
 	}
 );
 
