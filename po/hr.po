@@ -1042,6 +1042,10 @@ msgid "%d GB"
 msgstr ""
 
 #, python-format
+msgid "%d Gb"
+msgstr ""
+
+#, python-format
 msgid "%d KB"
 msgstr ""
 
