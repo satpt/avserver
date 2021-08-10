@@ -797,7 +797,7 @@ class International:
 					print("[International] Warning: Package manager exit status is %d!" % process.returncode)
 				languages = [self.splitPackage(x)[0] for x in packageList]
 				languages = ["%s (%s)" % (LANGUAGE_DATA[x][LANG_NAME], LANGUAGE_DATA[x][LANG_NATIVE]) for x in languages]
-				langtext = ngettext("Language", "Languages", len(languages))
+				langtext = _("Languages") if len(languages) > 1 else _("Language")
 				if errorText:
 					print("[International] Warning: Package manager error '%s'!" % errorText)
 					status = _("Error: %s %s not %s!  Please try again later.") % (langtext, ", ".join(languages), action)
