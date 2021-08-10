@@ -580,7 +580,7 @@ class International:
 			if language not in self.languageList:
 				self.languageList.append(language)
 			count = len(packageLocales)
-			print("[International] Package '%s' has %d locale%s '%s'." % (package, count, ngettext("", "s", count), "', '".join(packageLocales)))
+			print("[International] Package '%s' has %d locale(s) '%s'." % (package, count, "', '".join(packageLocales)))
 		self.localeList.sort()
 		self.languageList.sort()
 
@@ -797,11 +797,12 @@ class International:
 					print("[International] Warning: Package manager exit status is %d!" % process.returncode)
 				languages = [self.splitPackage(x)[0] for x in packageList]
 				languages = ["%s (%s)" % (LANGUAGE_DATA[x][LANG_NAME], LANGUAGE_DATA[x][LANG_NATIVE]) for x in languages]
+				langtext = ngettext("Language", "Languages", len(languages))
 				if errorText:
 					print("[International] Warning: Package manager error '%s'!" % errorText)
-					status = _("Error: Language%s %s not %s!  Please try again later.") % (ngettext("", "s", len(languages)), ", ".join(languages), action)
+					status = _("Error: %s %s not %s!  Please try again later.") % (langtext, ", ".join(languages), action)
 				else:
-					status = _("Language%s %s %s.") % (ngettext("", "s", len(languages)), ", ".join(languages), action)
+					status = ("%s %s %s.") % (langtext, ", ".join(languages), action)
 			except (IOError, OSError) as err:
 				print("[International] Error %d: %s for command '%s'!" % (err.errno, err.strerror, " ".join(cmdList)))
 				status = _("Error: Unable to process the command!  Please try again later.")
