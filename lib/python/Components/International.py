@@ -3,6 +3,7 @@
 from gettext import bindtextdomain, install, textdomain, translation
 from locale import Error as LocaleError, LC_ALL, LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, LC_TIME, setlocale, getlocale
 from os import environ, listdir
+from os.path import isdir
 from six import PY2
 from subprocess import Popen, PIPE
 from time import localtime, strftime, time
@@ -15,6 +16,7 @@ PACKAGER = "/usr/bin/opkg"
 PACKAGE_TEMPLATE = "enigma2-locale-%s"
 
 languagePath = resolveFilename(SCOPE_LANGUAGE)
+print("[International] DEBUG: Language path='%s'." % languagePath)
 if PY2:
 	install("enigma2", languagePath, unicode=0, codeset="UTF-8", names=("ngettext", "pgettext"))
 else:
@@ -580,7 +582,7 @@ class International:
 			if language not in self.languageList:
 				self.languageList.append(language)
 			count = len(packageLocales)
-			print("[International] Package '%s' has %d locale(s) '%s'." % (package, count, "', '".join(packageLocales)))
+			print("[International] Package '%s' has %d locale%s'%s'." % (package, count, ngettext(" ", "s ", count), "', '".join(packageLocales)))
 		self.localeList.sort()
 		self.languageList.sort()
 
@@ -627,9 +629,9 @@ class International:
 			environ["LANGUAGE"] = "%s.UTF-8" % locale
 			environ["GST_SUBTITLE_ENCODING"] = self.getGStreamerSubtitleEncoding()
 			self.activeLocale = locale
-			if runCallbacks:
-				for method in self.callbacks:
-					method()
+		if runCallbacks:
+			for method in self.callbacks:
+				method()
 
 	def addCallback(self, callback):
 		if callable(callback):
@@ -687,7 +689,7 @@ class International:
 
 	def getPackageDirectories(self):  # Adapt language directory entries to match the package format.
 		global languagePath
-		packageDirectories = sorted(listdir(languagePath))
+		packageDirectories = sorted(listdir(languagePath)) if isdir(languagePath) else []
 		print("[International] There are %d installed language directories '%s'." % (len(packageDirectories), "', '".join(packageDirectories)))
 		return packageDirectories
 
@@ -797,12 +799,11 @@ class International:
 					print("[International] Warning: Package manager exit status is %d!" % process.returncode)
 				languages = [self.splitPackage(x)[0] for x in packageList]
 				languages = ["%s (%s)" % (LANGUAGE_DATA[x][LANG_NAME], LANGUAGE_DATA[x][LANG_NATIVE]) for x in languages]
-				langtext = _("Languages") if len(languages) > 1 else _("Language")
 				if errorText:
 					print("[International] Warning: Package manager error '%s'!" % errorText)
-					status = _("Error: %s %s not %s!  Please try again later.") % (langtext, ", ".join(languages), action)
+					status = _("Error: Language%s%s not %s!  Please try again later.") % (ngettext(" ", "s ", len(languages)), ", ".join(languages), action)
 				else:
-					status = ("%s %s %s.") % (langtext, ", ".join(languages), action)
+					status = _("Language%s%s %s.") % (ngettext(" ", "s ", len(languages)), ", ".join(languages), action)
 			except (IOError, OSError) as err:
 				print("[International] Error %d: %s for command '%s'!" % (err.errno, err.strerror, " ".join(cmdList)))
 				status = _("Error: Unable to process the command!  Please try again later.")
