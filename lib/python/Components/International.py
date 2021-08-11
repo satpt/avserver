@@ -16,11 +16,14 @@ PACKAGER = "/usr/bin/opkg"
 PACKAGE_TEMPLATE = "enigma2-locale-%s"
 
 languagePath = resolveFilename(SCOPE_LANGUAGE)
-print("[International] DEBUG: Language path='%s'." % languagePath)
-if PY2:
-	install("enigma2", languagePath, unicode=0, codeset="UTF-8", names=("ngettext", "pgettext"))
-else:
-	install("enigma2", languagePath, codeset="UTF-8", names=("ngettext", "pgettext"))
+try:
+	if PY2:
+		install("enigma2", languagePath, unicode=0, codeset="UTF-8", names=("ngettext", "pgettext"))
+	else:
+		install("enigma2", languagePath, codeset="UTF-8", names=("ngettext", "pgettext"))
+except UnicodeDecodeError:
+	print("[International] Error: The language translation data in '%s' has failed to initialise!  Translations are not possible." % languagePath)
+	install("enigma2", "/", codeset="UTF-8", names=("ngettext", "pgettext"))
 bindtextdomain("enigma2", languagePath)
 textdomain("enigma2")
 
@@ -558,7 +561,6 @@ class International:
 		setISO3166(data)
 
 	def initInternational(self):
-		# self.availablePackages = []
 		# Console().ePopen("/usr/bin/opkg find enigma2-locale-*", self.getConsoleData)
 		# Console().ePopen(("/usr/bin/opkg", "/usr/bin/opkg", "find", "enigma2-locale-*"), self.getConsoleData)
 		# Console().ePopen(("/bin/echo", "echo", "This is a test message."), self.getConsoleData)
@@ -568,7 +570,7 @@ class International:
 		self.availablePackages = self.getAvailablePackages()
 		self.installedPackages = self.getInstalledPackages()
 		self.packageDirectories = self.getPackageDirectories()
-		if self.packageDirectories != self.installedPackages:
+		if len(self.packageDirectories) != len(self.installedPackages):
 			print("[International] Warning: Count of installed language packages and language directory entries do not match!")
 		for package in self.installedPackages:
 			locales = self.packageToLocales(package)
@@ -582,7 +584,7 @@ class International:
 			if language not in self.languageList:
 				self.languageList.append(language)
 			count = len(packageLocales)
-			print("[International] Package '%s' has %d locale%s'%s'." % (package, count, ngettext(" ", "s ", count), "', '".join(packageLocales)))
+			print("[International] Package '%s' has %d locale%s '%s'." % (package, count, "" if count == 1 else "s", "', '".join(packageLocales)))
 		self.localeList.sort()
 		self.languageList.sort()
 
@@ -786,24 +788,38 @@ class International:
 		return self.runPackageManager(cmdList=[PACKAGER, "remove", "--autoremove", "--force-depends"], packageList=packageList, action=_("deleted"))
 
 	def installLanguagePackages(self, packageList):
-		return self.runPackageManager(cmdList=[PACKAGER, "install"], packageList=packageList, action=_("installed"))
+		return self.runPackageManager(cmdList=[PACKAGER, "install", "--volatile-cache"], packageList=packageList, action=_("installed"))
 
 	def runPackageManager(self, cmdList=None, packageList=None, action=""):
 		status = ""
 		if cmdList is not None and packageList is not None:
 			cmdList = tuple(cmdList + [PACKAGE_TEMPLATE % x for x in packageList])
+			print("[International] Running package manager command line '%s'." % " ".join(cmdList))
 			try:
 				process = Popen(cmdList, stdout=PIPE, stderr=PIPE, universal_newlines=True)
 				packageText, errorText = process.communicate()
 				if process.returncode:
 					print("[International] Warning: Package manager exit status is %d!" % process.returncode)
+				locales = 0
+				languages = 0
+				for package in packageList:
+					if len(package) > 3:
+						locales += 1
+					if len(package) < 4:
+						languages += 1
+				msg = []
+				if locales:
+					msg.append(ngettext("Locale", "Locales", locales))
+				if languages:
+					msg.append(ngettext("Language", "Languages", languages))
+				msg = "/".join(msg)
 				languages = [self.splitPackage(x)[0] for x in packageList]
 				languages = ["%s (%s)" % (LANGUAGE_DATA[x][LANG_NAME], LANGUAGE_DATA[x][LANG_NATIVE]) for x in languages]
 				if errorText:
-					print("[International] Warning: Package manager error '%s'!" % errorText)
-					status = _("Error: Language%s%s not %s!  Please try again later.") % (ngettext(" ", "s ", len(languages)), ", ".join(languages), action)
+					print("[International] Warning: Package manager error:\n%s" % errorText)
+					status = _("Error: %s %s not %s!  Please try again later.") % (msg, ", ".join(languages), action)
 				else:
-					status = _("Language%s%s %s.") % (ngettext(" ", "s ", len(languages)), ", ".join(languages), action)
+					status = _("%s %s %s.") % (msg, ", ".join(languages), action)
 			except (IOError, OSError) as err:
 				print("[International] Error %d: %s for command '%s'!" % (err.errno, err.strerror, " ".join(cmdList)))
 				status = _("Error: Unable to process the command!  Please try again later.")
