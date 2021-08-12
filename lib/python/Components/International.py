@@ -809,9 +809,9 @@ class International:
 						languages += 1
 				msg = []
 				if locales:
-					msg.append(ngettext("Locale", "Locales", locales))
+					msg.append(ngettext(_("Locale"), _("Locales"), locales))
 				if languages:
-					msg.append(ngettext("Language", "Languages", languages))
+					msg.append(ngettext(_("Language"), _("Languages"), languages))
 				msg = "/".join(msg)
 				languages = [self.splitPackage(x)[0] for x in packageList]
 				languages = ["%s (%s)" % (LANGUAGE_DATA[x][LANG_NAME], LANGUAGE_DATA[x][LANG_NATIVE]) for x in languages]
