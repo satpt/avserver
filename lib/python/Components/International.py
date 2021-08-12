@@ -8,7 +8,6 @@ from six import PY2
 from subprocess import Popen, PIPE
 from time import localtime, strftime, time
 
-# from Components.Console import Console
 from Tools.CountryCodes import setISO3166
 from Tools.Directories import SCOPE_LANGUAGE, resolveFilename
 
@@ -18,12 +17,12 @@ PACKAGE_TEMPLATE = "enigma2-locale-%s"
 languagePath = resolveFilename(SCOPE_LANGUAGE)
 try:
 	if PY2:
-		install("enigma2", languagePath, unicode=0, codeset="UTF-8", names=("ngettext", "pgettext"))
+		install("enigma2", languagePath, unicode=False, codeset="UTF-8", names=("ngettext", "pgettext"))
 	else:
-		install("enigma2", languagePath, codeset="UTF-8", names=("ngettext", "pgettext"))
+		install("enigma2", languagePath, names=("ngettext", "pgettext"))
 except UnicodeDecodeError:
 	print("[International] Error: The language translation data in '%s' has failed to initialise!  Translations are not possible." % languagePath)
-	install("enigma2", "/", codeset="UTF-8", names=("ngettext", "pgettext"))
+	install("enigma2", "/", names=("ngettext", "pgettext"))
 bindtextdomain("enigma2", languagePath)
 textdomain("enigma2")
 
@@ -561,12 +560,6 @@ class International:
 		setISO3166(data)
 
 	def initInternational(self):
-		# Console().ePopen("/usr/bin/opkg find enigma2-locale-*", self.getConsoleData)
-		# Console().ePopen(("/usr/bin/opkg", "/usr/bin/opkg", "find", "enigma2-locale-*"), self.getConsoleData)
-		# Console().ePopen(("/bin/echo", "echo", "This is a test message."), self.getConsoleData)
-		# Console().ePopen(("/bin/failure", "failure", "This is a test message."), self.getConsoleData)
-		# Console().ePopen(("/usr/bin/wget", "wget"), self.getConsoleData)
-		# Console().ePopen(("/usr/bin/wget", "wget", "fred"), self.getConsoleData)
 		self.availablePackages = self.getAvailablePackages()
 		self.installedPackages = self.getInstalledPackages()
 		self.packageDirectories = self.getPackageDirectories()
@@ -588,12 +581,6 @@ class International:
 		self.localeList.sort()
 		self.languageList.sort()
 
-	# def getConsoleData(self, data, retVal, extraArgs):
-	# 	print("[International] getConsoleData return value is %d." % retVal)
-	# 	availablePackages = []
-	# 	for line in data.split("\n"):
-	# 		print("[International] %s" % line)
-
 	def activateLanguage(self, language, runCallbacks=True):
 		locale = "%s_%s" % (language, LANGUAGE_DATA[language][LANG_COUNTRYCODES][0]) if language in LANGUAGE_DATA else "en_US"
 		print("[International] Language '%s' is being activated as locale '%s'." % (language, locale))
@@ -607,7 +594,11 @@ class International:
 		else:
 			print("[International] Activating language '%s', locale '%s'." % (self.getLanguage(locale), locale))
 			global languagePath
-			self.catalog = translation("enigma2", languagePath, languages=[locale], fallback=True)
+			try:
+				self.catalog = translation("enigma2", languagePath, languages=[locale], fallback=True)
+			except UnicodeDecodeError:
+				print("[International] Error: The language translation data in '%s' for '%s' ('%s') has failed to initialise!" % (languagePath, self.getLanguage(locale), locale))
+				self.catalog = translation("enigma2", "/", fallback=True)
 			self.catalog.install(names=("ngettext", "pgettext"))
 			for category in CATEGORIES:
 				environ[category[CAT_ENVIRONMENT]] = "%s.UTF-8" % locale
