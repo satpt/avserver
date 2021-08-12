@@ -4,7 +4,7 @@ from Components.ActionMap import HelpableActionMap
 from Components.config import config, ConfigSubsection, ConfigSelection
 from Components.Label import Label
 from Components.International import LANG_NAME, LANG_NATIVE, LANGUAGE_DATA, international
-from Components.Pixmap import Pixmap
+from Components.Pixmap import MultiPixmap
 from Components.Sources.List import List
 from Components.Sources.StaticText import StaticText
 from Screens.HelpMenu import HelpableScreen, ShowRemoteControl
@@ -39,22 +39,24 @@ class LocaleSelection(Screen, HelpableScreen):
 	LIST_STATUS = 5
 	LIST_PACKAGE = 6
 
-	PACK_INSTALLED = 1
-	PACK_AVAILABLE = 2
-	PACK_INUSE = 3
+	PACK_INSTALLED = 0
+	PACK_AVAILABLE = 1
+	PACK_IN_USE = 2
 
 	skin = """
 	<screen name="LocaleSelection" position="center,center" size="1000,560" resolution="1280,720">
+		<widget name="icons" position="0,0" size="30,27" pixmaps="icons/lock_on.png,icons/lock_off.png,icons/lock_error.png" alphatest="blend" />
 		<widget source="locales" render="Listbox" position="10,10" size="e-20,442" enableWrapAround="1" scrollbarMode="showOnDemand">
 			<convert type="TemplatedMultiContent">
 				{
-				"template": [
+				"template":
+					[
 					MultiContentEntryPixmapAlphaBlend(pos = (5, 2), size = (60, 30), flags = BT_SCALE, png = 0),
 					MultiContentEntryText(pos = (80, 0), size = (400, 34), font = 0, flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER, text = 1),
 					MultiContentEntryText(pos = (490, 0), size = (330, 34), font = 0, flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER, text = 2),
-					MultiContentEntryText(pos = (810, 0), size = (90, 34), font = 0, flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER, text = 3),
-					MultiContentEntryPixmapAlphaBlend(pos = (910, 7), size = (49, 19), flags = BT_SCALE, png = 4)
-				],
+					MultiContentEntryText(pos = (830, 0), size = (90, 34), font = 0, flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER, text = 3),
+					MultiContentEntryPixmapAlphaBlend(pos = (930, 3), size = (30, 27), flags = BT_SCALE, png = 4)
+					],
 				"fonts": [parseFont("MultiLingual;25")],
 				"itemHeight": 34
 				}
@@ -81,13 +83,12 @@ class LocaleSelection(Screen, HelpableScreen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		HelpableScreen.__init__(self)
-		self.available = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/menu_download.png"))
-		self.installed = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/menu_off.png"))
-		self.inUse = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/menu_on.png"))
 		self["key_menu"] = StaticText(_("MENU"))
 		self["key_red"] = StaticText()
 		self["key_green"] = StaticText()
 		self["key_yellow"] = StaticText()
+		self["icons"] = MultiPixmap()
+		self["icons"].hide()
 		self["locales"] = List(None, enableWrapAround=True)
 		self["locales"].onSelectionChanged.append(self.selectionChanged)
 		self["description"] = StaticText()
@@ -136,9 +137,12 @@ class LocaleSelection(Screen, HelpableScreen):
 		self.packageDoneTimer = eTimer()
 		self.packageDoneTimer.callback.append(self.processPackageDone)
 		self.selectError = False
+		self.onLayoutFinish.append(self.layoutFinished)
+
+	def layoutFinished(self):
 		self.updateLocaleList(self.initialLocale)
-		if self.layoutFinished not in self.onLayoutFinish:
-			self.onLayoutFinish.append(self.layoutFinished)
+		self.moveToLocale(self.currentLocale)
+		self.updateText(updateDescription=True)
 
 	def updateLocaleList(self, inUseLoc=None):
 		if inUseLoc is None:
@@ -155,10 +159,10 @@ class LocaleSelection(Screen, HelpableScreen):
 				if png is None:
 					png = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "countries/missing.png"))
 				name = "%s (%s)" % (LANGUAGE_DATA[data[0]][LANG_NAME], data[1])
-				icon = self.installed if installStatus == self.PACK_INSTALLED else self.available
+				icon = self["icons"].pixmaps[self.PACK_INSTALLED] if installStatus == self.PACK_INSTALLED else self["icons"].pixmaps[self.PACK_AVAILABLE]
 				if locale == inUseLoc:
-					status = self.PACK_INUSE
-					icon = self.inUse
+					status = self.PACK_IN_USE
+					icon = self["icons"].pixmaps[self.PACK_IN_USE]
 				else:
 					status = installStatus
 				self.list.append((png, LANGUAGE_DATA[data[0]][LANG_NATIVE], name, locale, icon, status, package))
@@ -171,16 +175,12 @@ class LocaleSelection(Screen, HelpableScreen):
 				png = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, "countries/missing.png"))
 			name = "%s (%s)" % (LANGUAGE_DATA[data[0]][LANG_NAME], data[1])
 			package = international.getPackage(inUseLoc)
-			self.list.append((png, LANGUAGE_DATA[data[0]][LANG_NATIVE], name, inUseLoc, self.inUse, self.PACK_INUSE, package))
+			self.list.append((png, LANGUAGE_DATA[data[0]][LANG_NATIVE], name, inUseLoc, self["icons"].pixmaps[self.PACK_IN_USE], self.PACK_IN_USE, package))
 		sortBy = int(config.locales.localesSortBy.value)
 		order = sortBy / 10 if sortBy > 9 else sortBy
 		reverse = True if sortBy > 9 else False
 		self.list = sorted(self.list, key=lambda x: x[order], reverse=reverse)
 		self["locales"].updateList(self.list)
-
-	def layoutFinished(self):
-		self.moveToLocale(self.currentLocale)
-		self.updateText(updateDescription=True)
 
 	def selectionChanged(self):
 		self.changedTimer.start(250)
@@ -205,7 +205,7 @@ class LocaleSelection(Screen, HelpableScreen):
 		if current[self.LIST_PACKAGE] == international.getPackage(self.currentLocale):
 			self["key_yellow"].text = ""
 			self["manageActions"].setEnabled(False)
-			if current[self.LIST_STATUS] == self.PACK_INUSE:
+			if current[self.LIST_STATUS] == self.PACK_IN_USE:
 				msg = _("This is the currently selected locale.")
 			else:
 				msg = _("Press OK to use this locale.")
