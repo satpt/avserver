@@ -52,8 +52,8 @@ class LocaleSelection(Screen, HelpableScreen):
 					MultiContentEntryPixmapAlphaBlend(pos = (5, 2), size = (60, 30), flags = BT_SCALE, png = 0),
 					MultiContentEntryText(pos = (80, 0), size = (400, 34), font = 0, flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER, text = 1),
 					MultiContentEntryText(pos = (490, 0), size = (330, 34), font = 0, flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER, text = 2),
-					MultiContentEntryText(pos = (830, 0), size = (90, 34), font = 0, flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER, text = 3),
-					MultiContentEntryPixmapAlphaBlend(pos = (930, 3), size = (30, 27), flags = BT_SCALE, png = 4)
+					MultiContentEntryText(pos = (810, 0), size = (90, 34), font = 0, flags = RT_HALIGN_LEFT | RT_VALIGN_CENTER, text = 3),
+					MultiContentEntryPixmapAlphaBlend(pos = (910, 7), size = (49, 19), flags = BT_SCALE, png = 4)
 				],
 				"fonts": [parseFont("MultiLingual;25")],
 				"itemHeight": 34
@@ -81,9 +81,9 @@ class LocaleSelection(Screen, HelpableScreen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		HelpableScreen.__init__(self)
-		self.available = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/lock_off.png"))
-		self.installed = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/lock_on.png"))
-		self.inUse = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/lock_error.png"))
+		self.available = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/menu_download.png"))
+		self.installed = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/menu_off.png"))
+		self.inUse = LoadPixmap(path=resolveFilename(SCOPE_CURRENT_SKIN, "icons/menu_on.png"))
 		self["key_menu"] = StaticText(_("MENU"))
 		self["key_red"] = StaticText()
 		self["key_green"] = StaticText()
