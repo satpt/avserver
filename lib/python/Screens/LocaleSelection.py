@@ -8,7 +8,7 @@ from Components.Pixmap import MultiPixmap
 from Components.Sources.List import List
 from Components.Sources.StaticText import StaticText
 from Screens.HelpMenu import HelpableScreen, ShowRemoteControl
-from Screens.Screen import Screen
+from Screens.Screen import Screen, ScreenSummary
 from Screens.Setup import Setup
 from Tools.Directories import SCOPE_CURRENT_SKIN, resolveFilename
 from Tools.LoadPixmap import LoadPixmap
@@ -379,8 +379,7 @@ class LocaleSettings(Setup):
 		Setup.__init__(self, session=session, setup="Locale")
 
 
-# class WizardLanguage(LocaleSelection, ShowRemoteControl):
-class LanguageWizard(LocaleSelection, ShowRemoteControl):
+class LocaleWizard(LocaleSelection, ShowRemoteControl):
 	def __init__(self, session):
 		LocaleSelection.__init__(self, session)
 		ShowRemoteControl.__init__(self)
@@ -405,10 +404,4 @@ class LanguageWizard(LocaleSelection, ShowRemoteControl):
 		self["summarytext"].setText(_("Use the UP and DOWN buttons to select your locale/language then press the OK or GREEN button to continue."))
 
 	def createSummary(self):
-		return LanguageWizardSummary
-
-
-# class WizardLanguageSummary(Screen):
-class LanguageWizardSummary(Screen):
-	def __init__(self, session, parent):
-		Screen.__init__(self, session, parent)
+		return ScreenSummary
