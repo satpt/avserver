@@ -7,17 +7,21 @@ from Components.International import international
 #
 class Language:
 	def __init__(self):
-		# print("[Language] International class already initialised.")
-		pass
+		self.lang = {}
+		for package in international.getPackageDirectories():
+			locales = international.packageToLocales(package)
+			if len(locales):
+				language, country = international.splitLocale(locales[0])
+				self.lang[locales[0]] = ((international.getLanguageNative(language), language, country, international.getLanguageEncoding(language)))
 
 	def InitLang(self):
 		pass
 
 	def activateLanguage(self, language):
-		international.activateLocale(language)
+		return international.activateLocale(language)
 
 	def getActiveLanguage(self):
-		international.getLocale()
+		return international.getLocale()
 
 	def addCallback(self, callback):
 		if callable(callback):
@@ -39,6 +43,9 @@ class Language:
 			locale = "%s_%s" % (language, country if country else "??")
 			languageList.append((locale, (international.getLanguageNative(language), language, country, international.getLanguageEncoding(language))))
 		return languageList
+
+	def getActiveCatalog(self):
+		return international.getActiveCatalog()
 
 
 language = Language()
