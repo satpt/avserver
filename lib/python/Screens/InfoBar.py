@@ -62,7 +62,7 @@ class InfoBar(InfoBarBase, InfoBarShowHide,
 			"showMovies": (self.showMovies, _("Play recorded movies")),
 			"showRadio": (self.showRadioButton, _("Show the radio player")),
 			"showTv": (self.showTvButton, _("Show the tv player")),
-			"toogleTvRadio": (self.toogleTvRadio, _("Toggels between tv and radio")),
+			"toggleTvRadio": (self.toggleTvRadio, _("Toggels between tv and radio")),
 			"openBouquetList": (self.openBouquetList, _("Open bouquetlist")),
 			"showMediaPlayer": (self.showMediaPlayer, _("Show the media player")),
 			"openTimerList": (self.openTimerList, _("Open Timerlist")),
@@ -186,7 +186,7 @@ class InfoBar(InfoBarBase, InfoBarShowHide,
 
 	def showTvButton(self):
 		if boxtype.startswith('gb') or boxtype in ('classm', 'genius', 'evo', 'galaxym6', 'sf8008', 'sf8008m'):
-			self.toogleTvRadio()
+			self.toggleTvRadio()
 		elif boxtype in ('uniboxhd1', 'uniboxhd2', 'uniboxhd3', 'sezam5000hd', 'mbtwin'):
 			self.showMovies()
 		else:
@@ -205,7 +205,7 @@ class InfoBar(InfoBarBase, InfoBarShowHide,
 
 	def showRadioButton(self):
 		if boxtype.startswith('gb') or boxtype.startswith('azbox') or boxtype in ('classm', 'genius', 'evo', 'galaxym6', 'uniboxhd1', 'uniboxhd2', 'uniboxhd3', 'sezam5000hd', 'mbtwin', 'beyonwizt3'):
-			self.toogleTvRadio()
+			self.toggleTvRadio()
 		else:
 			self.showRadio()
 
@@ -222,7 +222,7 @@ class InfoBar(InfoBarBase, InfoBarShowHide,
 			from Screens.ChannelSelection import ChannelSelectionRadio
 			self.session.openWithCallback(self.ChannelSelectionRadioClosed, ChannelSelectionRadio, self)
 
-	def toogleTvRadio(self):
+	def toggleTvRadio(self):
 		if self.radioTV == 1:
 			self.radioTV = 0
 			self.showTv()

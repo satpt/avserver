@@ -2145,8 +2145,8 @@ class ChannelSelection(ChannelSelectionBase, ChannelSelectionEdit, ChannelSelect
 			{
 				"cancel": self.cancel,
 				"ok": self.channelSelected,
-				"keyRadio": self.toogleTvRadio,
-				"keyTV": self.toogleTvRadio,
+				"keyRadio": self.toggleTvRadio,
+				"keyTV": self.toggleTvRadio,
 			})
 
 		ChannelSelectionEPG.__init__(self)
@@ -2230,7 +2230,7 @@ class ChannelSelection(ChannelSelectionBase, ChannelSelectionEdit, ChannelSelect
 		if lastservice.valid():
 			self.setCurrentSelection(lastservice)
 
-	def toogleTvRadio(self):
+	def toggleTvRadio(self):
 		if self.radioTV == 1:
 			self.radioTV = 0
 			self.setModeTv()
