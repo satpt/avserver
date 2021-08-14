@@ -13,6 +13,7 @@ public:
 	void setPixmap(gPixmap *pixmap);
 	void setPixmap(ePtr<gPixmap> &pixmap);
 	void setPixmapFromFile(const char *filename);
+	void setPixmapFromFileEx(const char *filename, int width, int height, int scale);
 	void setAlphatest(int alphatest); /* 1 for alphatest, 2 for alphablend */
 	void setScale(int scale);
 	void setBorderWidth(int pixel);
