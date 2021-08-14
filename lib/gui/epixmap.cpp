@@ -54,7 +54,7 @@ void ePixmap::setPixmapFromFileEx(const char *filename, int width, int height, i
 {
 	eDebug("[ePixmap] setPixmapFromFileEx: before load width:%d height:%d scale:%d",size().width(), size().height(), m_scale);
 	m_scale = scale;
-	m_size = eSize(width,height);
+	SetSize(width,height);
 	setPixmapFromFile(filename);
 }
 

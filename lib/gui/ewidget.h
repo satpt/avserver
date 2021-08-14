@@ -61,6 +61,8 @@ public:
 
 	ePoint getAbsolutePosition();
 
+	void SetSize(int width, int height) {  m_size = eSize(width, height); }
+
 	eWidgetAnimation m_animation;
 private:
 	eWidgetDesktop *m_desktop;
