@@ -25,6 +25,10 @@ eHdmiCEC::eCECMessage::eCECMessage(int addr, int cmd, char *data, int length)
 	if (length > (int)sizeof(messageData)) length = sizeof(messageData);
 	if (length && data) memcpy(messageData, data, length);
 	dataLength = length;
+	control0 = data[0];
+	control1 = data[1];
+	control2 = data[2];
+	control2 = data[3];
 }
 
 int eHdmiCEC::eCECMessage::getAddress()
@@ -42,6 +46,26 @@ int eHdmiCEC::eCECMessage::getData(char *data, int length)
 	if (length > (int)dataLength) length = dataLength;
 	memcpy(data, messageData, length);
 	return length;
+}
+
+int eHdmiCEC::eCECMessage::getControl0()
+{
+	return control0;
+}
+
+int eHdmiCEC::eCECMessage::getControl1()
+{
+	return control1;
+}
+
+int eHdmiCEC::eCECMessage::getControl2()
+{
+	return control2;
+}
+
+int eHdmiCEC::eCECMessage::getControl3()
+{
+	return control3;
 }
 
 eHdmiCEC::eHdmiCEC()
@@ -548,7 +572,8 @@ void eHdmiCEC::sendMessage(struct cec_message &message)
 			message.flag = 1;
 			::ioctl(hdmiFd, 3, &message);
 #else
-			::write(hdmiFd, &message, 2 + message.length);
+			ssize_t ret = ::write(hdmiFd, &message, 2 + message.length);
+			if (ret < 0) eDebug("[eHdmiCEC] write failed: %m");
 #endif
 		}
 	}
