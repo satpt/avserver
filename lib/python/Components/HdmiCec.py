@@ -1,17 +1,18 @@
 from __future__ import print_function
 from __future__ import absolute_import
-import struct
+from datetime import datetime
 import os
-import datetime
+from struct import pack
+from time import time
 from fcntl import ioctl
+from sys import maxsize
+
 from enigma import eTimer, eHdmiCEC, eActionMap
 from Components.config import config, ConfigSelection, ConfigYesNo, ConfigSubsection, ConfigText, NoSave
 from Components.Console import Console
 from Tools.Directories import fileExists, pathExists
-from time import time
 import Screens.Standby
 
-from sys import maxsize
 from six import PY3, ensure_binary
 
 config.hdmicec = ConfigSubsection()
@@ -86,6 +87,8 @@ msgfile = "/tmp/hdmicec_msg"
 errfile = "/tmp/hdmicec_cmd_err.log"
 hlpfile = "/tmp/hdmicec_cmd_hlp.txt"
 cecinfo = "http://www.cec-o-matic.com"
+
+CEC = ["1.1", "1.2", "1.2a", "1.3", "1.3a", "1.4", "2.0?", "unknown"]	# CEC Version's table,  cmdList from http://www.cec-o-matic.com
 
 CECintcmd = {
 	"Active Source": "sourceactive",
@@ -517,14 +520,18 @@ class HdmiCec:
 			checkstate = self.stateTimer.isActive()
 			data = 16 * '\x00'
 			cmd = message.getCommand()
-			CECcmd = cmdList.get(cmd, "<Polling Message>")
+			_CECcmd = CECcmd.get(cmd, "<Polling Message>")
 			length = message.getData(data, len(data))
 			ctrl0 = message.getControl0()
 			address = message.getAddress()
-			print("[hdmiCEC][messageReceived]1: msgaddress=%s  CECcmd=%s, cmd = %s, ctrl0=%s, length=%s \n" % (msgaddress, CECcmd, cmd, ctrl0, length))
+			print("[hdmiCEC][messageReceived]1: msgaddress=%s  CECcmd=%s, cmd = %s, ctrl0=%s, length=%s \n" % (address, _CECcmd, cmd, ctrl0, length))
 			cmdReceived = (config.hdmicec.commandline.value and self.cmdWaitTimer.isActive())
-			if config.hdmicec.debug.value or cmdReceived:
-				self.CECdebug('Rx', address, cmd, data, length - 1, cmdReceived)
+			if config.hdmicec.debug.value:
+				if cmdReceived:
+					# FIXME : improve debug for commandline
+					self.CECdebug('Rx', address, cmd, data, length - 1, cmdReceived)
+				else:
+					self.debugRx(length, cmd, ctrl0)
 
 			#// workaround for wrong address vom driver (e.g. hd51, message comes from tv -> address is only sometimes 0, dm920, same tv -> address is always 0)
 			if address > 15:
@@ -661,61 +668,61 @@ class HdmiCec:
 				address = 0x0f # use broadcast address
 				cmd = 0x82
 				physicaladdress = eHdmiCEC.getInstance().getPhysicalAddress()
-				data = struct.pack('BB', int(physicaladdress / 256), int(physicaladdress % 256))
+				data = pack('BB', int(physicaladdress / 256), int(physicaladdress % 256))
 			elif message == "routinginfo":
 				address = 0x0f # use broadcast address
 				cmd = 0x81
 				physicaladdress = eHdmiCEC.getInstance().getPhysicalAddress()
-				data = struct.pack('BB', int(physicaladdress / 256), int(physicaladdress % 256))
+				data = pack('BB', int(physicaladdress / 256), int(physicaladdress % 256))
 			elif message == "standby":
 				cmd = 0x36
 			elif message == "sourceinactive":
 				physicaladdress = eHdmiCEC.getInstance().getPhysicalAddress()
 				cmd = 0x9d
-				data = struct.pack('BB', int(physicaladdress / 256), int(physicaladdress % 256))
+				data = pack('BB', int(physicaladdress / 256), int(physicaladdress % 256))
 			elif message == "menuactive":
 				cmd = 0x8e
-				data = struct.pack('B', 0x00)
+				data = pack('B', 0x00)
 			elif message == "menuinactive":
 				cmd = 0x8e
-				data = struct.pack('B', 0x01)
+				data = pack('B', 0x01)
 			elif message == "givesystemaudiostatus":
 				cmd = 0x7d
 			elif message == "setsystemaudiomode":
 				cmd = 0x70
 				physicaladdress = eHdmiCEC.getInstance().getPhysicalAddress()
-				data = struct.pack('BB', int(physicaladdress / 256), int(physicaladdress % 256))
+				data = pack('BB', int(physicaladdress / 256), int(physicaladdress % 256))
 			elif message == "activatesystemaudiomode":
 				cmd = 0x72
-				data = struct.pack('B', 0x01)
+				data = pack('B', 0x01)
 			elif message == "deactivatesystemaudiomode":
 				cmd = 0x72
-				data = struct.pack('B', 0x00)
+				data = pack('B', 0x00)
 			elif message == "osdname":
 				cmd = 0x47
 				data = os.uname()[1]
 				data = ensure_binary(data[:14])
 			elif message == "poweractive":
 				cmd = 0x90
-				data = struct.pack('B', 0x00)
+				data = pack('B', 0x00)
 			elif message == "powerinactive":
 				cmd = 0x90
-				data = struct.pack('B', 0x01)
+				data = pack('B', 0x01)
 			elif message == "reportaddress":
 				address = 0x0f # use broadcast address
 				cmd = 0x84
 				physicaladdress = eHdmiCEC.getInstance().getPhysicalAddress()
 				devicetype = eHdmiCEC.getInstance().getDeviceType()
-				data = struct.pack('BBB', int(physicaladdress / 256), int(physicaladdress % 256), devicetype)
+				data = pack('BBB', int(physicaladdress / 256), int(physicaladdress % 256), devicetype)
 			elif message == "vendorid":
 				cmd = 0x87
 				data = b'\x00\x00\x00'
 			elif message == "keypoweron":
 				cmd = 0x44
-				data = struct.pack('B', 0x6d)
+				data = pack('B', 0x6d)
 			elif message == "keypoweroff":
 				cmd = 0x44
-				data = struct.pack('B', 0x6c)
+				data = pack('B', 0x6c)
 			elif message == "powerstate":
 				cmd = 0x8f
 			if cmd:
@@ -727,7 +734,7 @@ class HdmiCec:
 						data = data.decode("ISO-8859-1")
 				if config.misc.DeepStandby.value: # no delay for messages before go in to deep-standby
 					if config.hdmicec.debug.value:
-						self.CECdebug('Tx', address, cmd, data, len(data))
+						self.debugTx(address, cmd, data)
 					eHdmiCEC.getInstance().sendMessage(address, cmd, data, len(data))
 				else:
 					self.queue.append((address, cmd, data))
@@ -738,7 +745,7 @@ class HdmiCec:
 		if len(self.queue):
 			(address, cmd, data) = self.queue.pop(0)
 			if config.hdmicec.debug.value:
-				self.CECdebug('Tx', address, cmd, data, len(data))
+				self.debugTx(address, cmd, data)
 			eHdmiCEC.getInstance().sendMessage(address, cmd, data, len(data))
 			self.wait.start(int(config.hdmicec.minimum_send_interval.value), True)
 
@@ -1050,13 +1057,13 @@ class HdmiCec:
 		if keyEvent in (0, 2):
 			if keyCode == 115:
 				cmd = 0x44
-				data = struct.pack('B', 0x41)
+				data = pack('B', 0x41)
 			elif keyCode == 114:
 				cmd = 0x44
-				data = struct.pack('B', 0x42)
+				data = pack('B', 0x42)
 			elif keyCode == 113:
 				cmd = 0x44
-				data = struct.pack('B', 0x43)
+				data = pack('B', 0x43)
 		elif keyEvent == 1 and keyCode in (113, 114, 115):
 			cmd = 0x45
 		if cmd:
@@ -1067,11 +1074,58 @@ class HdmiCec:
 					data = data.decode("ISO-8859-1")
 
 			if config.hdmicec.debug.value:
-				self.CECdebug('Tx', address, cmd, data, len(data))
+				self.debugTx(address, cmd, data)
 			eHdmiCEC.getInstance().sendMessage(self.volumeForwardingDestination, cmd, data, len(data))
 			return 1
 		else:
 			return 0
+
+	def debugTx(self, address, cmd, data):
+		txt = self.now(True) + self.opCode(cmd, True) + " " + "%02X" % (cmd) + " "
+		tmp = ""
+		if len(data):
+			if cmd in [0x32, 0x47]:
+				for i in range(len(data)):
+					tmp += "%s" % data[i]
+			else:
+				for i in range(len(data)):
+					tmp += "%02X" % ord(data[i]) + " "
+		tmp += 48 * " "
+		self.fdeCECwritedebugbug(txt + tmp[:48] + "[0x%02X]" % (address))
+
+	def debugRx(self, length, cmd, ctrl):
+		txt = self.now()
+		if cmd == 0 and length == 0:
+			txt += self.opCode(cmd) + " - "
+		else:
+			if cmd == 0:
+				txt += "<Feature Abort>" + 13 * " " + "<  " + "%02X" % (cmd) + " "
+			else:
+				txt += self.opCode(cmd) + " " + "%02X" % (cmd) + " "
+			if cmd == 0x9e:
+				txt += "%02X" % ctrl + 3 * " " + "[version: %s]" % CEC[ctrl]
+			else:
+				txt += "%02X" % ctrl + " "
+		self.CECwritedebug(txt)
+
+	def opCode(self, cmd, out=False):
+		send = "<"
+		if out:
+			send = ">"
+		opCode = ""
+		if cmd in CECcmd:
+			opCode += "%s" % CECcmd[cmd]
+		opCode += 30 * " "
+		return opCode[:28] + send + " "
+
+	def now(self, out=False, fulldate=False):
+		send = "Rx: "
+		if out:
+			send = "Tx: "
+		now = datetime.now()
+		if fulldate:
+			return send + now.strftime("%d-%m-%Y %H:%M:%S") + 2 * " "
+		return send + now.strftime("%H:%M:%S") + 2 * " "
 
 	def sethdmipreemphasis(self):
 		f = "/proc/stb/hdmi/preemphasis"
@@ -1177,7 +1231,7 @@ class HdmiCec:
 				self.disk_full = False
 			else:
 				return
-			now = datetime.datetime.now()
+			now = datetime.now()
 			debugfile = os.path.join(log_path, now.strftime("Enigma2-hdmicec-%Y%m%d.log"))
 			timestamp = now.strftime("%H:%M:%S.%f")[:-2]
 			debugtext = "%s %s%s\n" % (timestamp, ("[   ] " if debugprint else ""), debugtext.replace("[HdmiCec] ", ""))
@@ -1271,7 +1325,7 @@ class HdmiCec:
 							cmd = int(ceccmd[1] or "0", 16)
 							if len(ceccmd) > 2:
 								for d in ceccmd[2:]:
-									data += struct.pack("B", int(d or "0", 16))
+									data += pack("B", int(d or "0", 16))
 
 							# TODO : Test
 							if PY3:
@@ -1281,7 +1335,7 @@ class HdmiCec:
 									data = data.decode("ISO-8859-1")
 
 							if config.hdmicec.debug.value:
-								self.CECdebug('Tx', address, cmd, data, len(data))
+								self.debugTx(address, cmd, data)
 							
 							eHdmiCEC.getInstance().sendMessage(address, cmd, data, len(data))
 						self.cmdWaitTimer.startLongTimer(waittime)
