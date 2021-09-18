@@ -182,17 +182,38 @@ public:
 	int getEntryTop();
 	void invalidate(const gRegion &region = gRegion::invalidRegion());
 
-	static void setScrollbarStyle(int width, int offset) { Defaultwidth = index; Defaultoffset = offset; }
+	static void setScrollbarStyle(int width = -1, int offset = -1, gRGB &borderColor = nullptr , gRGB &backgroundColor = nullptr, gRGB &thumbColor = nullptr ,ePtr<gPixmap> &backgroundPixmap = nullptr, ePtr<gPixmap> &thumbPixmap = nullptr) { 
+			if (width != -1)
+				Defaultwidth = width; 
+			if (offset != -1)
+				Defaultoffset = offset; 
+			DefaultborderColor = borderColor; 
+			DefaultbackgroundColor = backgroundColor; 
+			DefaultthumbColor = thumbColor;
+			DefaultbackgroundPixmap = backgroundPixmap;
+			DefaultthumbPixmap = thumbPixmap;
+		}
 
 protected:
 	int event(int event, void *data=0, void *data2=0);
 	void recalcSize();
 
 private:
-	static int getScrollbarStyleWith() { return Defaultwidth; }
-	static int getScrollbarStyleOffset() { return Defaultoffset; }
+	static int getDefaultwidth() { return Defaultwidth; }
+	static int getDefaultoffset() { return Defaultoffset; }
+	static ePtr<gPixmap> getDefaultbackgroundPixmap() { return DefaultbackgroundPixmap; }
+	static ePtr<gPixmap> getDefaultthumbPixmap() { return DefaultthumbPixmap; }
+	static gRGB getDefaultborderColor() { return DefaultborderColor; }
+	static gRGB getDefaultbackgroundColor() { return DefaultbackgroundColor; }
+	static gRGB getDefaultthumbColor() { return DefaultthumbColor; }
+
 	static int Defaultwidth;
 	static int Defaultoffset;
+	static ePtr<gPixmap> DefaultbackgroundPixmap;
+	static ePtr<gPixmap> DefaultthumbPixmap;
+	static gRGB DefaultborderColor;
+	static gRGB DefaultbackgroundColor;
+	static gRGB DefaultthumbColor;
 
 	int m_scrollbar_mode, m_prev_scrollbar_page;
 	bool m_content_changed;

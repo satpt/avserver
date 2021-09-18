@@ -452,11 +452,11 @@ PyObject *getFontFaces()
 }
 %}
 
-void setListBoxScrollbarStyle(int,int);
+void setListBoxScrollbarStyle(int,int,gRGB,gRGB,gRGB,ePtr<gPixmap>,ePtr<gPixmap>);
 %{
-void setListBoxScrollbarStyle(int width, int offset)
+void setListBoxScrollbarStyle(int width, int offset,gRGB &borderColor, gRGB &backgroundColor, gRGB &thumbColor, ePtr<gPixmap> &backgroundPixmap, ePtr<gPixmap> &thumbPixmap)
 {
-	eListBox::setScrollbarStyle(width, offset);
+	eListBox::setScrollbarStyle(width, offset, borderColor, backgroundColor, thumbColor, backgroundPixmap, thumbPixmap);
 }
 %}
 

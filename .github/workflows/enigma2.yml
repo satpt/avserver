@@ -2,9 +2,9 @@ name: enigma2 build
 
 on:
   push:
-    branches: [ 7.0 ]
+    branches: [ listbox_scrollbar_style ]
   pull_request:
-    branches: [ 7.0 ]
+    branches: [ listbox_scrollbar_style ]
 
 jobs:
   build:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gcc: [8, 9, 10, 11]
+        gcc: [11]
     steps:
       - name: Install prerequisites
         run: |

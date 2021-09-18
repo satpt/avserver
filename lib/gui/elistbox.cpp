@@ -8,6 +8,11 @@
 
 int eListbox::Defaultwidth = 10;
 int eListbox::Defaultoffset = 5;
+ePtr<gPixmap> eListbox::DefaultbackgroundPixmap = nullptr;
+ePtr<gPixmap> eListbox::DefaultthumbPixmap = nullptr;
+gRGB eListbox::DefaultborderColor = nullptr;
+gRGB eListbox::DefaultbackgroundColor = nullptr;
+gRGB eListbox::DefaultthumbColor = nullptr;
 
 eListbox::eListbox(eWidget *parent) :
 	eWidget(parent), m_scrollbar_mode(showNever), m_prev_scrollbar_page(-1),
