@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import skin
 
-from enigma import ePoint, eSize
+from enigma import ePoint, eSize, eListbox
 from Components.config import config
 
 
@@ -38,6 +38,9 @@ class GUIComponent(object):
 
 		if self.skinAttributes is None:
 			return False
+
+		if type(self.instance) == eListbox:
+			skin.applyScrollbar(self.instance)
 
 		#//workaround for values from attributes the not be set
 		#

@@ -1,6 +1,6 @@
 from enigma import eLabel, ePoint, eSize, eSlider, eWidget, fontRenderClass
 
-from skin import applyAllAttributes
+from skin import applyAllAttributes, applySlider
 from Components.GUIComponent import GUIComponent
 
 
@@ -23,17 +23,23 @@ class ScrollLabel(GUIComponent):
 		self.scrollbarmode = "showOnDemand"
 
 	def applySkin(self, desktop, parent):
-		scrollbarWidth = 10
+		scrollbarWidth = applySlider(self.scrollbar, 10, 1)
 		itemHeight = 30
 		scrollbarBorderWidth = 1
 		ret = False
 		if self.skinAttributes:
 			widget_attribs = []
 			scrollbar_attribs = []
-			scrollbarAttrib = ["scrollbarSliderForegroundColor", "scrollbarSliderBorderColor", "scrollbarSliderPicture", "scrollbarBackgroundPicture"]
+			scrollbarAttrib = ["scrollbarSliderForegroundColor", "scrollbarSliderBorderColor"]
 			for (attrib, value) in self.skinAttributes[:]:
 				if attrib in scrollbarAttrib:
 					scrollbar_attribs.append((attrib, value))
+					self.skinAttributes.remove((attrib, value))
+				elif attrib in ("scrollbarSliderPicture", "sliderPixmap"):
+					self.scrollbar.setPixmap(skin.loadPixmap(value, desktop))
+					self.skinAttributes.remove((attrib, value))
+				elif attrib in ("scrollbarBackgroundPicture", "scrollbarbackgroundPixmap"):
+					self.scrollbar.setBackgroundPixmap(skin.loadPixmap(value, desktop))
 					self.skinAttributes.remove((attrib, value))
 				elif "borderColor" in attrib or "borderWidth" in attrib:
 					scrollbar_attribs.append((attrib, value))
@@ -43,8 +49,6 @@ class ScrollLabel(GUIComponent):
 				elif "scrollbarMode" in attrib:
 					self.scrollbarmode = value
 					self.skinAttributes.remove((attrib, value))
-				elif "borderColor" in attrib or "borderWidth" in attrib:
-					scrollbar_attribs.append((attrib, value))
 				elif "transparent" in attrib or "backgroundColor" in attrib:
 					widget_attribs.append((attrib, value))
 				elif "scrollbarWidth" in attrib:

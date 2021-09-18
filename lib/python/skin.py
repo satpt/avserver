@@ -4,7 +4,7 @@ from os import listdir, unlink
 from six import PY2
 from xml.etree.cElementTree import Element, ElementTree, fromstring
 
-from enigma import addFont, eLabel, ePixmap, ePoint, eRect, eSize, eWindow, eWindowStyleManager, eWindowStyleSkinned, getDesktop, gFont, getFontFaces, gMainDC, gRGB
+from enigma import addFont, eLabel, eListbox, ePixmap, ePoint, eRect, eSize, eWindow, eWindowStyleManager, eWindowStyleSkinned, getDesktop, gFont, getFontFaces, gMainDC, gRGB
 
 from Components.config import ConfigSubsection, ConfigText, config
 from Components.RcModel import rc_model
@@ -44,6 +44,7 @@ menus = {}  # Dictionary of images associated with menu entries.
 parameters = {}  # Dictionary of skin parameters used to modify code behavior.
 setups = {}  # Dictionary of images associated with setup menus.
 switchPixmap = {}  # Dictionary of switch images.
+scrollbarStyle = None # When set, a dictionary of scrollbar styles
 windowStyles = {}  # Dictionary of window styles for each screen ID.
 resolutions = {}  # Dictionary of screen resolutions for each screen ID.
 constantWidgets = {}
@@ -77,7 +78,7 @@ runCallbacks = False
 # E.g. "MySkin/skin_display.xml"
 #
 def InitSkins():
-	global currentPrimarySkin, currentDisplaySkin, resolutions
+	global currentPrimarySkin, currentDisplaySkin, resolutions, scrollbarStyle
 	##################################################################################################
 	if isfile('/etc/.restore_skins'):
 		unlink('/etc/.restore_skins')
@@ -99,6 +100,7 @@ def InitSkins():
 				print('[RESTORE_SKIN] ...error occurred: ', err)
 	##################################################################################################
 	runCallbacks = False
+	scrollbarStyle = None
 	# Add the emergency skin.  This skin should provide enough functionality
 	# to enable basic GUI functions to work.
 	loadSkin(EMERGENCY_SKIN, scope=SCOPE_CURRENT_SKIN, desktop=getDesktop(GUI_SKIN_ID), screenID=GUI_SKIN_ID)
@@ -431,6 +433,17 @@ def parseValuePair(value, scale, object=None, desktop=None, size=None):
 	return (xValue, yValue)
 
 
+def parseScrollbarMode(s):
+	try:
+		return {
+			"showOnDemand": eListbox.showOnDemand,
+			"showAlways": eListbox.showAlways,
+			"showNever": eListbox.showNever,
+			"showLeft": eListbox.showLeft
+		}[s]
+	except KeyError:
+		print("[Skin] Error: Invalid scrollbarMode '%s'!  Must be one of 'showOnDemand', 'showAlways', 'showNever' or 'showLeft'." % s)
+
 def loadPixmap(path, desktop):
 	option = path.find("#")
 	if option != -1:
@@ -714,7 +727,7 @@ class AttributeParser:
 		self.guiObject.setScale(value)
 
 	def scrollbarBackgroundPixmap(self, value):
-		self.guiObject.setScrollbarBackgroundPicture(loadPixmap(value, self.desktop))
+		self.guiObject.setScrollbarBackgroundPixmap(loadPixmap(value, self.desktop))
 
 	def scrollbarBackgroundPicture(self, value):  # For compatibility same as 'scrollbarBackgroundPixmap', use 'scrollbarBackgroundPixmap' instead.
 		self.scrollbarBackgroundPixmap(value)
@@ -725,32 +738,24 @@ class AttributeParser:
 		raise AttribDeprecatedError("scrollbarBackgroundPixmap")
 
 	def scrollbarMode(self, value):
-		try:
-			self.guiObject.setScrollbarMode({
-				"showOnDemand": self.guiObject.showOnDemand,
-				"showAlways": self.guiObject.showAlways,
-				"showNever": self.guiObject.showNever,
-				"showLeft": self.guiObject.showLeft
-			}[value])
-		except KeyError:
-			raise AttribValueError("'showOnDemand', 'showAlways', 'showNever' or 'showLeft'")
+		self.guiObject.setScrollbarMode(parseScrollbarMode(value))
 
 	def scrollbarSliderBorderColor(self, value):
-		self.guiObject.setSliderBorderColor(parseColor(value))
+		self.guiObject.setScrollbarBorderColor(parseColor(value))
 
 	def scrollbarSliderBorderWidth(self, value):
 		# print("[Skin] DEBUG: Scale scrollbarSliderBorderWidth %d -> %d." % (int(value), self.applyHorizontalScale(value)))
-		self.guiObject.setScrollbarSliderBorderWidth(self.applyHorizontalScale(value))
+		self.guiObject.setScrollbarBorderWidth(self.applyHorizontalScale(value))
 
 	def scrollbarSliderForegroundColor(self, value):
-		self.guiObject.setSliderForegroundColor(parseColor(value))
+		self.guiObject.setScrollbarForegroundColor(parseColor(value))
 
 	def scrollbarSliderPicture(self, value):  # For compatibility same as 'scrollbarSliderPixmap', use 'scrollbarSliderPixmap' instead.
 		self.scrollbarSliderPixmap(value)
 		raise AttribDeprecatedError("scrollbarSliderPixmap")
 
 	def scrollbarSliderPixmap(self, value):
-		self.guiObject.setSliderPicture(loadPixmap(value, self.desktop))
+		self.guiObject.setScrollbarPixmap(loadPixmap(value, self.desktop))
 
 	def scrollbarWidth(self, value):
 		# print("[Skin] DEBUG: Scale scrollbarWidth %d -> %d." % (int(value), self.applyHorizontalScale(value)))
@@ -840,6 +845,34 @@ class AttributeParser:
 def applyAllAttributes(guiObject, desktop, attributes, scale=((1, 1), (1, 1))):
 	AttributeParser(guiObject, desktop, scale).applyAll(attributes)
 
+def ifHasValue(value, function):
+	return function(value) if value is not None else None
+
+def applyScrollbar(guiObject):
+#		global scrollbarStyle
+#		if scrollbarStyle is None:
+			return
+#		guiObject.setScrollbarWidth(scrollbarStyle["width"])
+#		guiObject.setScrollbarBorderWidth(scrollbarStyle["borderWidth"])
+#		guiObject.setScrollbarBorderColor(scrollbarStyle["borderColor"])
+#		guiObject.setScrollbarForegroundColor(scrollbarStyle["foregroundColor"])
+#		guiObject.setScrollbarBackgroundColor(scrollbarStyle["backgroundColor"])
+#		ifHasValue(scrollbarStyle.get("pixmap"), guiObject.setScrollbarPixmap)
+#		ifHasValue(scrollbarStyle.get("backgroundPixmap"), guiObject.setScrollbarBackgroundPixmap)
+#		guiObject.setScrollbarMode(scrollbarStyle["mode"])
+
+def applySlider(guiObject, defaultWidth, defaultBorderWidth):
+#		global scrollbarStyle
+#		if scrollbarStyle:
+#			defaultWidth = scrollbarStyle["width"]
+#			defaultBorderWidth = scrollbarStyle.get("borderWidth", defaultBorderWidth)
+#			guiObject.setBorderColor(scrollbarStyle["borderColor"])
+#			guiObject.setForegroundColor(scrollbarStyle["foregroundColor"])
+#			guiObject.setBackgroundColor(scrollbarStyle["backgroundColor"])
+#			ifHasValue(scrollbarStyle.get("pixmap"), guiObject.setPixmap)
+#			ifHasValue(scrollbarStyle.get("backgroundPixmap"), guiObject.setBackgroundPixmap)
+#		guiObject.setBorderWidth(defaultBorderWidth)
+		return defaultWidth
 
 def reloadWindowStyles():
 	for screenID in windowStyles:
@@ -850,7 +883,7 @@ def reloadWindowStyles():
 def loadSingleSkinData(desktop, screenID, domSkin, pathSkin, scope=SCOPE_CURRENT_SKIN):
 	"""Loads skin data like colors, windowstyle etc."""
 	assert domSkin.tag == "skin", "root element in skin must be 'skin'!"
-	global colors, fonts, menus, parameters, setups, switchPixmap, resolutions
+	global colors, fonts, menus, parameters, setups, switchPixmap, resolutions, scrollbarStyle
 	for tag in domSkin.findall("output"):
 		scrnID = int(tag.attrib.get("id", GUI_SKIN_ID))
 		if scrnID == GUI_SKIN_ID:
@@ -1015,6 +1048,58 @@ def loadSingleSkinData(desktop, screenID, domSkin, pathSkin, scope=SCOPE_CURRENT
 			except Exception:
 				raise SkinError("Unknown color type '%s'" % colorType)
 			# print("[Skin] DEBUG: WindowStyle color type, color -" % (colorType, str(color)))
+		for scrollbar in tag.findall("scrollbar"):
+			# If there are two sets of border colors and border widths then we can use:
+			print("[Skin] DEBUG: Scrollbar style scrollbarBackgroundColor='%s'." % scrollbar.attrib.get("scrollbarBackgroundColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBackgroundPixmap='%s'." % scrollbar.attrib.get("scrollbarBackgroundPixmap"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarMode='%s'." % scrollbar.attrib.get("scrollbarMode"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBorderColor='%s'." % scrollbar.attrib.get("scrollbarSliderBorderColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBorderWidth='%s'." % scrollbar.attrib.get("scrollbarSliderBorderWidth"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarSliderBorderWidth='%s'." % scrollbar.attrib.get("scrollbarSliderBorderWidth"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarSliderBorderColor='%s'." % scrollbar.attrib.get("scrollbarSliderBorderColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarSliderForegroundColor='%s'." % scrollbar.attrib.get("scrollbarSliderForegroundColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarSliderForegroundPixmap='%s'." % scrollbar.attrib.get("scrollbarSliderForegroundPixmap"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarWidth='%s'." % scrollbar.attrib.get("scrollbarWidth"))
+			# If there are two sets of border colors and border widths and we want to use the proper names then we can use:
+			print("[Skin] DEBUG: Scrollbar style scrollbarBackgroundColor='%s'." % scrollbar.attrib.get("scrollbarBackgroundColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBackgroundPixmap='%s'." % scrollbar.attrib.get("scrollbarBackgroundPixmap"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarMode='%s'." % scrollbar.attrib.get("scrollbarMode"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBorderColor='%s'." % scrollbar.attrib.get("scrollbarSliderBorderColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBorderWidth='%s'." % scrollbar.attrib.get("scrollbarSliderBorderWidth"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarThumbBorderWidth='%s'." % scrollbar.attrib.get("scrollbarThumbBorderWidth"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarThumbBorderColor='%s'." % scrollbar.attrib.get("scrollbarThumbBorderColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarThumbForegroundColor='%s'." % scrollbar.attrib.get("scrollbarThumbForegroundColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarThumbForegroundPixmap='%s'." % scrollbar.attrib.get("scrollbarThumbForegroundPixmap"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarWidth='%s'." % scrollbar.attrib.get("scrollbarWidth"))
+			# If there is only one border color and border width then we could use:
+			print("[Skin] DEBUG: Scrollbar style scrollbarBackgroundColor='%s'." % scrollbar.attrib.get("scrollbarBackgroundColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBackgroundPixmap='%s'." % scrollbar.attrib.get("scrollbarBackgroundPixmap"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarMode='%s'." % scrollbar.attrib.get("scrollbarMode"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBorderColor='%s'." % scrollbar.attrib.get("scrollbarSliderBorderColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarBorderWidth='%s'." % scrollbar.attrib.get("scrollbarSliderBorderWidth"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarForegroundColor='%s'." % scrollbar.attrib.get("scrollbarForegroundColor"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarForegroundPixmap='%s'." % scrollbar.attrib.get("scrollbaForegroundPixmap"))
+			print("[Skin] DEBUG: Scrollbar style scrollbarWidth='%s'." % scrollbar.attrib.get("scrollbarWidth"))
+
+			def loadResolvedPixmap(filename):
+				if filename:
+					resolved = resolveFilename(scope, filename, path_prefix=pathSkin)
+					if isfile(resolved):
+						return LoadPixmap(resolved)
+					else:
+						print("[Skin] Pixmap %s can't be loaded" % filename)
+
+			scrollbarStyle = {
+				#"width": parseScale(scrollbar.attrib.get("width", 10)),
+				#"borderWidth": parseScale(scrollbar.attrib.get("borderWidth", 1)),
+				"borderColor": parseColor(scrollbar.attrib.get("borderColor", "white")),
+				"foregroundColor": parseColor(scrollbar.attrib.get("foregroundColor", "white")),
+				"backgroundColor": parseColor(scrollbar.attrib.get("backgroundColor", "black")),
+				"pixmap": loadResolvedPixmap(scrollbar.attrib.get("pixmap")),
+				"backgroundPixmap": loadResolvedPixmap(scrollbar.attrib.get("backgroundPixmap")),
+				"mode": parseScrollbarMode(scrollbar.attrib.get("mode", "showOnDemand"))
+			}
+		# style.setScrollbarWidth(10)
 		x = eWindowStyleManager.getInstance()
 		x.setStyle(scrnID, style)
 	for tag in domSkin.findall("margin"):
