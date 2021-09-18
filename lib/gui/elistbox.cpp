@@ -16,7 +16,6 @@ eListbox::eListbox(eWidget *parent) :
 {
 	m_scrollbar_width = eListBox::getScrollbarStyleWith();
 	m_scrollbar_offset = eListBox::getScrollbarStyleOffset();
-	eListBox::setScrollbarStyle(width, offset);
 	memset(static_cast<void*>(&m_style), 0, sizeof(m_style));
 	m_style.m_text_offset = ePoint(1,1);
 //	setContent(new eListboxStringContent());
