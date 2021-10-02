@@ -35,8 +35,16 @@ def getEnigmaVersionString():
 
 
 def getGStreamerVersionString():
-	from enigma import getGStreamerVersionString
-	return getGStreamerVersionString()
+	try:
+		from enigma import getGStreamerVersionString
+		return getGStreamerVersionString()
+	except:
+		try:
+			from glob import glob
+			gst = [x.split("Version: ") for x in open(glob("/var/lib/opkg/info/gstreamer*.control")[0], "r") if x.startswith("Version:")][0]
+			return "%s" % gst[1].split("+")[0].replace("\n","")
+		except:
+			return _("unknown")
 
 
 def getKernelVersionString():
