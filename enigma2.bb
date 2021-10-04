@@ -40,7 +40,6 @@ EXTRA_OECONF = " \
     --with-boxtype=${MACHINE} \
     --with-machinebuild="${MACHINEBUILD}" \
     --with-libsdl=no \
-    ${@bb.utils.contains("GST_VERSION", "1.0", "--with-gstversion=1.0", "", d)} \
     ${@bb.utils.contains("MACHINE_FEATURES", "textlcd", "--with-textlcd" , "", d)} \
     ${@bb.utils.contains("MACHINE_FEATURES", "colorlcd", "--with-colorlcd" , "", d)} \
     ${@bb.utils.contains("MACHINE_FEATURES", "colorlcd128", "--with-colorlcd128" , "", d)} \
