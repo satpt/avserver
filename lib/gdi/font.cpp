@@ -95,7 +95,7 @@ FT_Error fontRenderClass::FTC_Face_Requester(FTC_FaceID	face_id, FT_Face* aface)
 	int error;
 	if ((error=FT_New_Face(library, font->filename.c_str(), 0, aface)))
 	{
-		eDebug("[Font] Failed: %s!", strerror(error));
+		eDebug("[Font] Failed: %m");
 		return error;
 	}
 	FT_Select_Charmap(*aface, ft_encoding_unicode);
@@ -116,20 +116,12 @@ int fontRenderClass::getFaceProperties(const std::string &face, FTC_FaceID &id, 
 	return -1;
 }
 
-#ifdef HAVE_FREETYPE2
-inline FT_Error fontRenderClass::getGlyphBitmap(FTC_Image_Desc *font, FT_UInt glyph_index, FTC_SBit *sbit)
-#else
-inline FT_Error fontRenderClass::getGlyphBitmap(FTC_Image_Desc *font, FT_ULong glyph_index, FTC_SBit *sbit)
-#endif
+inline FT_Error fontRenderClass::getGlyphBitmap(FTC_Image_Desc *font, GlyphIndex glyph_index, FTC_SBit *sbit)
 {
 	return FTC_SBit_Cache_Lookup(sbitsCache, font, glyph_index, sbit);
 }
 
-#ifdef HAVE_FREETYPE2
-inline FT_Error fontRenderClass::getGlyphImage(FTC_Image_Desc *font, FT_UInt glyph_index, FT_Glyph *glyph, FT_Glyph *borderglyph, int bordersize)
-#else
-inline FT_Error fontRenderClass::getGlyphImage(FTC_Image_Desc *font, FT_ULong glyph_index, FT_Glyph *glyph, FT_Glyph *borderglyph, int bordersize)
-#endif
+inline FT_Error fontRenderClass::getGlyphImage(FTC_Image_Desc *font, GlyphIndex glyph_index, FT_Glyph *glyph, FT_Glyph *borderglyph, int bordersize)
 {
 	FT_Glyph image;
 	FT_Error err = FTC_ImageCache_Lookup(imageCache, font, glyph_index, &image, NULL);
@@ -327,26 +319,18 @@ Font::Font(fontRenderClass *render, FTC_FaceID faceid, int isize, int tw, int re
 //	font.image_type |= ftc_image_flag_autohinted;
 }
 
-#ifdef HAVE_FREETYPE2
-inline FT_Error Font::getGlyphBitmap(FT_UInt glyph_index, FTC_SBit *sbit)
-#else
-inline FT_Error Font::getGlyphBitmap(FT_ULong glyph_index, FTC_SBit *sbit)
-#endif
+Font::~Font()
+{
+}
+
+inline FT_Error Font::getGlyphBitmap(GlyphIndex glyph_index, FTC_SBit *sbit)
 {
 	return renderer->getGlyphBitmap(&font, glyph_index, sbit);
 }
 
-#ifdef HAVE_FREETYPE2
-inline FT_Error Font::getGlyphImage(FT_UInt glyph_index, FT_Glyph *glyph, FT_Glyph *borderglyph, int bordersize)
-#else
-inline FT_Error Font::getGlyphImage(FT_ULong glyph_index, FT_Glyph *glyph, FT_Glyph *borderglyph, int bordersize)
-#endif
+inline FT_Error Font::getGlyphImage(GlyphIndex glyph_index, FT_Glyph *glyph, FT_Glyph *borderglyph, int bordersize)
 {
 	return renderer->getGlyphImage(&font, glyph_index, glyph, borderglyph, bordersize);
-}
-
-Font::~Font()
-{
 }
 
 DEFINE_REF(eTextPara);
@@ -664,16 +648,18 @@ int eTextPara::renderString(const char *string, int rflags, int border)
 	singleLock s(ftlock);
 
 	if (!current_font)
-		return -1;
-
-	if ((FTC_Manager_LookupFace(fontRenderClass::instance->cacheManager,
-				current_font->scaler.face_id,
-				&current_face) < 0) ||
-	    (FTC_Manager_LookupSize(fontRenderClass::instance->cacheManager,
-				&current_font->scaler,
-				&current_font->size) < 0))
 	{
-		eDebug("[eTextPara] FTC_Manager_Lookup_Size failed!");
+		eWarning("[eTextPara] renderString: No current_font!");
+		return -1;
+	}
+	if (!current_face)
+	{
+		eWarning("[eTextPara] renderString: No current_face!");
+		return -1;
+	}
+	if (!current_face->size)
+	{
+		eWarning("[eTextPara] renderString: No current_face->size!");
 		return -1;
 	}
 
@@ -700,6 +686,17 @@ int eTextPara::renderString(const char *string, int rflags, int border)
 		lineCount = 1;
 		cursor=ePoint(area.x(), area.y()+(ascender>>6));
 		left=cursor.x();
+	}
+
+	if ((FTC_Manager_LookupFace(fontRenderClass::instance->cacheManager,
+ 				    current_font->scaler.face_id,
+ 				    &current_face) < 0) ||
+	    (FTC_Manager_LookupSize(fontRenderClass::instance->cacheManager,
+				    &current_font->scaler,
+				    &current_font->size) < 0))
+	{
+		eDebug("[eTextPara] renderString: FTC_Manager_Lookup_Size current_font failed!");
+		return -1;
 	}
 
 	std::vector<unsigned long> uc_string, uc_visual;
@@ -1249,7 +1246,7 @@ void eTextPara::realign(int dir)	// der code hier ist ein wenig merkwuerdig.
 			if (linelength > area.width())
 				return;
 			dir = dirCenter;
-			// fall-through on purpose
+			[[fallthrough]];
 		case dirRight:
 		case dirCenter:
 		case dirBidi:
