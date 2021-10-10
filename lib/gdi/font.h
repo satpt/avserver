@@ -94,6 +94,8 @@ public:
 #define GS_HYPHEN   32
 #define GS_COLORCHANGE 64
 #define GS_LF 128
+#define GS_FIXED 256
+#define GS_MAYBREAK 512
 #define GS_CANBREAK (GS_ISSPACE|GS_SOFTHYPHEN|GS_HYPHEN)
 
 struct pGlyph
@@ -145,6 +147,7 @@ class eTextPara: public iObject
 	int bboxValid;
 	eRect boundBox;
 	bool doTopBottomReordering;
+	int m_offset;
 
 	int appendGlyph(Font *current_font, FT_Face current_face, FT_UInt glyphIndex, int flags, int rflags, int border, bool last,
 			bool activate_newcolor, unsigned long newcolor);
@@ -153,9 +156,10 @@ class eTextPara: public iObject
 	void calc_bbox();
 public:
 	eTextPara(eRect area, ePoint start=ePoint(-1, -1))
-	: current_font(0), replacement_font(0), fallback_font(0), current_face(0), replacement_face(0), fallback_face(0),
+		: current_font(0), replacement_font(0), fallback_font(0),
+		current_face(0), replacement_face(0), fallback_face(0),
 		area(area), cursor(start), maximum(0, 0), left(start.x()), charCount(0), totalheight(0),
-		bboxValid(0), doTopBottomReordering(false)
+		bboxValid(0), doTopBottomReordering(false), m_offset(0)
 	{
 	}
 	virtual ~eTextPara();
@@ -166,7 +170,7 @@ public:
 	static void setFallbackFont(std::string font) { fallback_facename=font; }
 
 	void setFont(const gFont *font);
-	int renderString(const char *string, int flags=0, int border=0);
+	int renderString(const char *string, int flags=0, int border=0, int markedpos=-1);
 
 	void clear();
 	int getLineCount(void) const { return lineCount; }
@@ -178,7 +182,15 @@ public:
 		dirLeft, dirRight, dirCenter, dirBlock, dirCenterIfFits, dirBidi
 	};
 
-	void realign(int dir);
+	void setTextOffset(int offset)
+	{
+		m_offset = offset;
+	}
+	void realign(int dir, int markedpos=-1, int scrollpos=0);
+	int getTextOffset()
+	{
+		return m_offset;
+	}
 
 	const eRect & getBoundBox()
 	{
