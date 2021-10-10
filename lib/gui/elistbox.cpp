@@ -8,7 +8,7 @@
 
 eListbox::eListbox(eWidget *parent) :
 	eWidget(parent), m_scrollbar_mode(showNever), m_prev_scrollbar_page(-1),
-	m_content_changed(false), m_enabled_wrap_around(false), m_scrollbar_width(10),
+	m_content_changed(false), m_enabled_wrap_around(false), m_scrollbar_width(20), //FIXME m_scrollbar_width(10),
 	m_top(0), m_selected(0), m_itemheight(25),
 	m_items_per_page(0), m_selection_enabled(1), m_scrollbar(nullptr), m_native_keys_bound(false)
 {
@@ -71,7 +71,8 @@ void eListbox::allowNativeKeys(bool allow)
 		ePtr<eActionMap> ptr;
 		eActionMap::getInstance(ptr);
 		if (allow)
-			ptr->bindAction("ListboxActions", (int64_t)0, 0, this);
+//FIXME 			ptr->bindAction("ListboxActions", (int64_t)0, 0, this);
+			ptr->bindAction("ListboxActions", 0, 0, this);
 		else
 			ptr->unbindAction(this, 0);
 		m_native_keys_bound = allow;

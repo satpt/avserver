@@ -1,6 +1,6 @@
 #include <lib/gui/elistbox.h>
 #include <lib/gui/elistboxcontent.h>
-#include <lib/gdi/epoint.h>
+//FIXME #include <lib/gdi/epoint.h>
 #include <lib/gdi/font.h>
 #include <lib/python/python.h>
 #include <lib/gdi/epng.h>
@@ -237,8 +237,8 @@ void eListboxPythonStringContent::paint(gPainter &painter, eWindowStyle &style, 
 			{
 				text_offset += local_style->m_text_offset;
 //HACK VTI hat hier scheinbar einen Fehler und addiert den Textoffset zweimal auf, also machen wir das hier auch so
-				if (local_style->m_use_vti_workaround)
-					text_offset += local_style->m_text_offset;
+//FIXME				if (local_style->m_use_vti_workaround)
+//FIXME					text_offset += local_style->m_text_offset;
 
 				if (local_style->m_valign == eListboxStyle::alignTop)
 					flags |= gPainter::RT_VALIGN_TOP;

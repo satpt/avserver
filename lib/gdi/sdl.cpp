@@ -7,7 +7,7 @@
 
 #include <SDL.h>
 
-gSDLDC::gSDLDC() : m_pump(eApp, 1)
+gSDLDC::gSDLDC() : m_pump(eApp, 1, "gSDLDC")
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		eWarning("[gSDLDC] Could not initialize SDL: %s", SDL_GetError());
@@ -18,7 +18,7 @@ gSDLDC::gSDLDC() : m_pump(eApp, 1)
 
 	CONNECT(m_pump.recv_msg, gSDLDC::pumpEvent);
 
-	m_surface.type = 0;
+	//FIXME m_surface.type = 0;
 	m_surface.clut.colors = 256;
 	m_surface.clut.data = new gRGB[m_surface.clut.colors];
 
