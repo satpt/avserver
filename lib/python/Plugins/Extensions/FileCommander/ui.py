@@ -18,7 +18,7 @@ from Components.ChoiceList import ChoiceList, ChoiceEntryComponent
 from Screens.Screen import Screen
 from Screens.Setup import Setup
 from Screens.Console import Console
-from Screens.ChoiceBox import ChoiceBox
+from Screens.ChoiceBox import OrderedChoiceBox
 from Screens.MessageBox import MessageBox
 from Screens.LocationBox import LocationBox
 from Screens.HelpMenu import HelpableScreen
@@ -495,7 +495,7 @@ class FileCommanderScreen(Screen, HelpableScreen, key_actions):
 			cfg.bookmarks.save()
 		bookmarks = [(x, x) for x in bookmarks]
 		bookmarks.append((_("Storage devices"), None))
-		self.session.openWithCallback(self.locationCB, ChoiceBox, title=_("Select a path"), list=bookmarks, reorderConfig="fc_bookmarks_order")
+		self.session.openWithCallback(self.locationCB, OrderedChoiceBox, title=_("Select a path"), list=bookmarks, order="fc_bookmarks_order")
 
 	def locationCB(self, answer):
 		if answer:
