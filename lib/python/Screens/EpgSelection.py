@@ -37,6 +37,16 @@ except:
 
 mepg_config_initialized = False
 
+epgTypes = {
+	"single" : EPG_TYPE_SINGLE,
+	"infobar" : EPG_TYPE_INFOBAR,
+	"enhanced" : EPG_TYPE_ENHANCED,
+	"graph" : EPG_TYPE_GRAPH,
+	"infobargraph" : EPG_TYPE_INFOBARGRAPH,
+	"multi" : EPG_TYPE_MULTI,
+	"vertical" : EPG_TYPE_VERTICAL,
+	"similar" : EPG_TYPE_SIMILAR
+}
 
 class EPGSelection(Screen, HelpableScreen):
 	EMPTY = 0
@@ -51,30 +61,13 @@ class EPGSelection(Screen, HelpableScreen):
 		self.zapFunc = zapFunc
 		self.serviceChangeCB = serviceChangeCB
 		self.bouquets = bouquets
-		graphic = False
-		if EPGtype == "single":
-			self.type = EPG_TYPE_SINGLE
-		elif EPGtype == "infobar":
-			self.type = EPG_TYPE_INFOBAR
-		elif EPGtype == "enhanced":
-			self.type = EPG_TYPE_ENHANCED
-		elif EPGtype == "graph":
-			self.type = EPG_TYPE_GRAPH
-			if config.epgselection.graph_type_mode.value == "graphics":
-				graphic = True
-		elif EPGtype == "infobargraph":
-			self.type = EPG_TYPE_INFOBARGRAPH
-			if config.epgselection.infobar_type_mode.value == "graphics":
-				graphic = True
-		elif EPGtype == "multi":
-			self.type = EPG_TYPE_MULTI
-		elif EPGtype == "vertical":
-			self.type = EPG_TYPE_VERTICAL
-		elif EPGtype is None and eventid == None and isinstance(service, eServiceReference):
+		graphic = (config.epgselection.infobar_type_mode.value == "graphics" and "graph" in EPGtype)
+		if EPGtype is None and eventid == None and isinstance(service, eServiceReference):
 			self.type = EPG_TYPE_SINGLE
 		else:
-			self.type = EPG_TYPE_SIMILAR
-		if not self.type == EPG_TYPE_SINGLE:
+			self.type = epgTypes.get(EPGtype, "similar")
+		
+		if self.type != EPG_TYPE_SINGLE:
 			self.StartBouquet = StartBouquet
 			self.StartRef = StartRef
 			self.servicelist = None
@@ -122,7 +115,84 @@ class EPGSelection(Screen, HelpableScreen):
 			self["number"].hide()
 		#//
 
-		if self.type == EPG_TYPE_GRAPH or self.type == EPG_TYPE_INFOBARGRAPH or self.type == EPG_TYPE_VERTICAL:
+		epgCursoractionsUD = {
+			"up": (self.moveUp, _("Goto previous channel")),
+			"down": (self.moveDown, _("Goto next channel"))
+		} 
+
+		epgCursoractionsA = {
+			"left": (self.prevPage, _("Move up a page")),
+			"right": (self.nextPage, _("Move down a page"))
+		} + epgCursoractionsUD
+
+		epgCursoractionsB = {
+			"left": (self.prevService, _("Goto previous channel")),
+			"right": (self.nextService, _("Goto next channel"))
+		} + epgCursoractionsUD
+
+		epgCursoractionsC = {
+			"left": (self.leftPressed, _("Goto previous event")),
+			"right": (self.rightPressed, _("Goto next event"))
+		} + epgCursoractionsUD
+
+		bqCursoractions = {
+			"left": (self.moveBouquetPageUp, _("Goto previous event")),
+			"right": (self.moveBouquetPageDown, _("Goto next event")),
+			"up": (self.moveBouquetUp, _("Goto previous channel")),
+			"down": (self.moveBouquetDown, _("Goto next channel"))
+		}
+
+		epgSelectActionsAll = {
+			"nextBouquet": (self.nextBouquet, _("Goto next bouquet")),
+			"prevBouquet": (self.prevBouquet, _("Goto previous bouquet")),
+			"info": (self.Info, _("Show detailed event info")),
+			"infolong": (self.InfoLong, _("Show single EPG for current channel")),
+			"menu": (self.createSetup, _("Setup menu")),
+			"input_date_time": (self.enterDateTime, _("Goto specific date/time")),
+			"epg": (self.epgButtonPressed, _("Show single EPG for current channel"))
+		}
+
+		epgSelectActionsPage = {
+			"nextService": (self.nextPage, _("Move down a page")),
+			"prevService": (self.prevPage, _("Move up a page"))
+		}
+
+		epgSelectActionsService = {
+			"nextService": (self.nextService, _("Goto next channel")),
+			"prevService": (self.prevService, _("Goto previous channel"))
+		}
+
+		epgSelectActionsTV = {
+			"tv": (self.Bouquetlist, _("Toggle between bouquet/EPG lists")),
+			"tvlong": (self.togglePIG, _("Toggle Picture in Graphics"))
+		}
+
+		epgSelectActionsA = epgSelectActionsAll + epgSelectActionsPage
+
+		epgSelectActionsB = epgSelectActionsAll + epgSelectActionsService
+		epgSelectActionsB["epg"] = (self.Info, _("Show detailed event info"))
+
+		epgSelectActionsC = epgSelectActionsAll + epgSelectActionsTV
+		epgSelectActionsC["nextService"] = epgSelectActionsC["nextBouquet"]
+		epgSelectActionsC["prevService"] = epgSelectActionsC["prevBouquet"]
+
+		epgSelectActionsD = epgSelectActionsAll + epgSelectActionsPage + epgSelectActionsTV
+
+		epgSelectActionsE = epgSelectActionsAll + epgSelectActionsTV
+		epgSelectActionsE["nextService"] = (self.nextService, _("Jump forward 24 hours"))
+		epgSelectActionsE["prevService"] = (self.prevService, _("Jump back 24 hours"))
+
+		epgSelectActionsF = epgSelectActionsAll + epgSelectActionsPage + epgSelectActionsTV
+		del epgSelectActionsF["tvlong"]
+
+		epgSelectActionsG = epgSelectActionsAll + epgSelectActionsTV
+		epgSelectActionsG["info"] = (self.Info, _("Show detailed event info (setup in menu)"))
+		epgSelectActionsG["infolong"] = (self.InfoLong, _("Show single EPG for current channel (setup in menu)"))
+		epgSelectActionsG["nextService"] = (self.nextPage, _("Jump to next page or all up (setup in menu)"))
+		epgSelectActionsG["prevService"] = (self.prevPage, _("Jump to previous page or all down (setup in menu)"))
+
+
+		if self.type in (EPG_TYPE_GRAPH, EPG_TYPE_INFOBARGRAPH, EPG_TYPE_VERTICAL):
 			self.RefreshColouredKeys()
 		else:
 			self["key_red"] = StaticText(_("IMDb Search"))
@@ -176,54 +246,19 @@ class EPGSelection(Screen, HelpableScreen):
 				"menu": (self.createSetup, _("Setup menu"))
 			}, prio=-1)
 			self["epgactions"].csel = self
-			self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-				"left": (self.prevPage, _("Move up a page")),
-				"right": (self.nextPage, _("Move down a page")),
-				"up": (self.moveUp, _("Goto previous channel")),
-				"down": (self.moveDown, _("Goto next channel"))
-			}, prio=-1)
+			self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], epgCursoractionsA, prio=-1)
 			self["epgcursoractions"].csel = self
 		elif self.type == EPG_TYPE_INFOBAR or self.type == EPG_TYPE_ENHANCED:
 			if self.type == EPG_TYPE_INFOBAR:
 				self.skinName = "QuickEPG"
-				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], {
-					"nextBouquet": (self.nextBouquet, _("Goto next bouquet")),
-					"prevBouquet": (self.prevBouquet, _("Goto previous bouquet")),
-					"nextService": (self.nextPage, _("Move down a page")),
-					"prevService": (self.prevPage, _("Move up a page")),
-					"input_date_time": (self.enterDateTime, _("Goto specific date/time")),
-					"epg": (self.epgButtonPressed, _("Show single EPG for current channel")),
-					"info": (self.Info, _("Show detailed event info")),
-					"infolong": (self.InfoLong, _("Show single EPG for current channel")),
-					"menu": (self.createSetup, _("Setup menu"))
-				}, prio=-1, description=_("EPG Actions"))
+				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], epgSelectActionsA, prio=-1, description=_("EPG Actions"))
 				self["epgactions"].csel = self
-				self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-					"left": (self.prevService, _("Goto previous channel")),
-					"right": (self.nextService, _("Goto next channel")),
-					"up": (self.moveUp, _("Goto previous channel")),
-					"down": (self.moveDown, _("Goto next channel"))
-				}, prio=-1, description=_("EPG Navigation Actions"))
+				self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], epgCursoractionsB, prio=-1, description=_("EPG Navigation Actions"))
 				self["epgcursoractions"].csel = self
 			elif self.type == EPG_TYPE_ENHANCED:
-				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], {
-					"nextBouquet": (self.nextBouquet, _("Goto next bouquet")),
-					"prevBouquet": (self.prevBouquet, _("Goto previous bouquet")),
-					"nextService": (self.nextService, _("Goto next channel")),
-					"prevService": (self.prevService, _("Goto previous channel")),
-					"input_date_time": (self.enterDateTime, _("Goto specific date/time")),
-					"info": (self.Info, _("Show detailed event info")),
-					"infolong": (self.InfoLong, _("Show single EPG for current channel")),
-					"epg": (self.Info, _("Show detailed event info")),
-					"menu": (self.createSetup, _("Setup menu"))
-				}, prio=-1, description=_("EPG Navigation Actions"))
+				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], epgSelectActionsB, prio=-1, description=_("EPG Actions"))
 				self["epgactions"].csel = self
-				self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-					"left": (self.prevPage, _("Move up a page")),
-					"right": (self.nextPage, _("Move down a page")),
-					"up": (self.moveUp, _("Goto previous channel")),
-					"down": (self.moveDown, _("Goto next channel"))
-				}, prio=-1, description=_("EPG Navigation Actions"))
+				self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], epgCursoractionsA , prio=-1, description=_("EPG Navigation Actions"))
 				self["epgcursoractions"].csel = self
 			self["input_actions"] = HelpableNumberActionMap(self, ["NumberActions"], {
 				"0": (self.keyNumberGlobal, _("Enter number to jump to channel")),
@@ -286,65 +321,19 @@ class EPGSelection(Screen, HelpableScreen):
 			self["bouquetokactions"].csel = self
 			self["bouquetokactions"].setEnabled(False)
 
-			self["bouquetcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-				"left": (self.moveBouquetPageUp, _("Goto previous event")),
-				"right": (self.moveBouquetPageDown, _("Goto next event")),
-				"up": (self.moveBouquetUp, _("Goto previous channel")),
-				"down": (self.moveBouquetDown, _("Goto next channel"))
-			}, prio=-1, description=_("EPG Navigation Actions"))
+			self["bouquetcursoractions"] = HelpableActionMap(self, ["DirectionActions"], bqCursoractions, prio=-1, description=_("EPG Navigation Actions"))
 			self["bouquetcursoractions"].csel = self
 			self["bouquetcursoractions"].setEnabled(False)
 
-			self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-				"left": (self.leftPressed, _("Goto previous event")),
-				"right": (self.rightPressed, _("Goto next event")),
-				"up": (self.moveUp, _("Goto previous channel")),
-				"down": (self.moveDown, _("Goto next channel"))
-			}, prio=-1, description=_("EPG Navigation Actions"))
+			self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], epgCursoractionsC, prio=-1, description=_("EPG Navigation Actions"))
 			self["epgcursoractions"].csel = self
 
 			if config.epgselection.graph_channelbtn.value == "bouquet":
-				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], {
-					"nextService": (self.nextBouquet, _("Goto next bouquet")),
-					"prevService": (self.prevBouquet, _("Goto previous bouquet")),
-					"nextBouquet": (self.nextBouquet, _("Goto next bouquet")),
-					"prevBouquet": (self.prevBouquet, _("Goto previous bouquet")),
-					"input_date_time": (self.enterDateTime, _("Goto specific date/time")),
-					"epg": (self.epgButtonPressed, _("Show single EPG for current channel")),
-					"info": (self.Info, _("Show detailed event info")),
-					"infolong": (self.InfoLong, _("Show single EPG for current channel")),
-					"tv": (self.Bouquetlist, _("Toggle between bouquet/EPG lists")),
-					"tvlong": (self.togglePIG, _("Toggle Picture in Graphics")),
-					"menu": (self.createSetup, _("Setup menu"))
-				}, prio=-1)
+				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], epgSelectActionsC, prio=-1)
 			elif config.epgselection.graph_channelbtn.value == "page":
-				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], {
-					"nextService": (self.nextPage, _("Page down")),
-					"prevService": (self.prevPage, _("Page up")),
-					"nextBouquet": (self.nextBouquet, _("Goto next bouquet")),
-					"prevBouquet": (self.prevBouquet, _("Goto previous bouquet")),
-					"input_date_time": (self.enterDateTime, _("Goto specific date/time")),
-					"epg": (self.epgButtonPressed, _("Show single EPG for current channel")),
-					"info": (self.Info, _("Show detailed event info")),
-					"infolong": (self.InfoLong, _("Show single EPG for current channel")),
-					"tv": (self.Bouquetlist, _("Toggle between bouquet/EPG lists")),
-					"tvlong": (self.togglePIG, _("Toggle Picture in Graphics")),
-					"menu": (self.createSetup, _("Setup menu"))
-				}, prio=-1)
+				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], epgSelectActionsD, prio=-1)
 			else:
-				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], {
-					"nextService": (self.nextService, _("Jump forward 24 hours")),
-					"prevService": (self.prevService, _("Jump back 24 hours")),
-					"nextBouquet": (self.nextBouquet, _("Goto next bouquet")),
-					"prevBouquet": (self.prevBouquet, _("Goto previous bouquet")),
-					"input_date_time": (self.enterDateTime, _("Goto specific date/time")),
-					"epg": (self.epgButtonPressed, _("Show single EPG for current channel")),
-					"info": (self.Info, _("Show detailed event info")),
-					"infolong": (self.InfoLong, _("Show single EPG for current channel")),
-					"tv": (self.Bouquetlist, _("Toggle between bouquet/EPG lists")),
-					"tvlong": (self.togglePIG, _("Toggle Picture in Graphics")),
-					"menu": (self.createSetup, _("Setup menu"))
-				}, prio=-1)
+				self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], epgSelectActionsE, prio=-1)
 
 			self["epgactions"].csel = self
 
@@ -383,35 +372,14 @@ class EPGSelection(Screen, HelpableScreen):
 			self["bouquetokactions"].csel = self
 			self["bouquetokactions"].setEnabled(False)
 
-			self["bouquetcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-				"left": (self.moveBouquetPageUp, _("Goto previous event")),
-				"right": (self.moveBouquetPageDown, _("Goto next event")),
-				"up": (self.moveBouquetUp, _("Goto previous channel")),
-				"down": (self.moveBouquetDown, _("Goto next channel"))
-			}, prio=-1)
+			self["bouquetcursoractions"] = HelpableActionMap(self, ["DirectionActions"], bqCursoractions, prio=-1)
 			self["bouquetcursoractions"].csel = self
 			self["bouquetcursoractions"].setEnabled(False)
 
-			self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-				"left": (self.leftPressed, _("Goto previous event")),
-				"right": (self.rightPressed, _("Goto next event")),
-				"up": (self.moveUp, _("Goto previous channel")),
-				"down": (self.moveDown, _("Goto next channel"))
-			}, prio=-1)
+			self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], epgCursoractionsC, prio=-1)
 			self["epgcursoractions"].csel = self
 
-			self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], {
-				"nextService": (self.nextPage, _("Move down a page")),
-				"prevService": (self.prevPage, _("Move up a page")),
-				"nextBouquet": (self.nextBouquet, _("Goto next bouquet")),
-				"prevBouquet": (self.prevBouquet, _("Goto previous bouquet")),
-				"input_date_time": (self.enterDateTime, _("Goto specific date/time")),
-				"epg": (self.epgButtonPressed, _("Show single EPG for current channel")),
-				"info": (self.Info, _("Show detailed event info")),
-				"infolong": (self.InfoLong, _("Show single EPG for current channel")),
-				"tv": (self.Bouquetlist, _("Toggle between bouquet/EPG lists")),
-				"menu": (self.createSetup, _("Setup menu"))
-			}, prio=-1)
+			self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], epgSelectActionsF, prio=-1)
 			self["epgactions"].csel = self
 		elif self.type == EPG_TYPE_VERTICAL:
 			if config.epgselection.vertical_pig.value:
@@ -451,48 +419,26 @@ class EPGSelection(Screen, HelpableScreen):
 			self["bouquetokactions"].csel = self
 			self["bouquetokactions"].setEnabled(False)
 
-			self["bouquetcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-				"left": (self.moveBouquetPageUp, _("Goto previous event")),
-				"right": (self.moveBouquetPageDown, _("Goto next event")),
-				"up": (self.moveBouquetUp, _("Goto previous channel")),
-				"down": (self.moveBouquetDown, _("Goto next channel"))
-			}, prio=-1)
+			self["bouquetcursoractions"] = HelpableActionMap(self, ["DirectionActions"], bqCursoractionsC, prio=-1)
 			self["bouquetcursoractions"].csel = self
 			self["bouquetcursoractions"].setEnabled(False)
 
-			self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], {
-				"left": (self.leftPressed, _("Goto previous event")),
-				"right": (self.rightPressed, _("Goto next event")),
-				"up": (self.moveUp, _("Goto previous channel")),
-				"down": (self.moveDown, _("Goto next channel"))
-			}, prio=-1)
+			self["epgcursoractions"] = HelpableActionMap(self, ["DirectionActions"], epgCursoractionsC, prio=-1)
 			self["epgcursoractions"].csel = self
 
-			self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], {
-				"nextService": (self.nextPage, _("Jump to next page or all up (setup in menu)")),
-				"prevService": (self.prevPage, _("Jump to previous page or all down (setup in menu)")),
-				"nextBouquet": (self.nextBouquet, _("Goto next bouquet")),
-				"prevBouquet": (self.prevBouquet, _("Goto previous bouquet")),
-				"input_date_time": (self.enterDateTime, _("Goto specific date/time")),
-				"epg": (self.epgButtonPressed, _("Show single EPG for current channel")),
-				"info": (self.Info, _("Show detailed event info (setup in menu)")),
-				"infolong": (self.InfoLong, _("Show single EPG for current channel (setup in menu)")),
-				"tv": (self.Bouquetlist, _("Toggle between bouquet/EPG lists")),
-				"tvlong": (self.togglePIG, _("Toggle Picture in Graphics")),
-				"menu": (self.createSetup, _("Setup menu"))
-			}, prio=-1)
+			self["epgactions"] = HelpableActionMap(self, ["EPGSelectActions"], epgSelectActionsG, prio=-1)
 
 			self["input_actions"] = HelpableNumberActionMap(self, ["NumberActions"], {
-					'1': (self.keyNumberGlobal, _('goto first channel')),
-					'2': (self.keyNumberGlobal, _('all events up')),
-					'3': (self.keyNumberGlobal, _('goto last channel')),
-					'4': (self.keyNumberGlobal, _('previous channel page')),
-					'0': (self.keyNumberGlobal, _('goto current channel and now')),
-					'6': (self.keyNumberGlobal, _('next channel page')),
-					'7': (self.keyNumberGlobal, _('goto now')),
-					'8': (self.keyNumberGlobal, _('all events down')),
-					'9': (self.keyNumberGlobal, _('Goto Primetime')),
-					'5': (self.keyNumberGlobal, _('Set Basetime'))
+				'1': (self.keyNumberGlobal, _('goto first channel')),
+				'2': (self.keyNumberGlobal, _('all events up')),
+				'3': (self.keyNumberGlobal, _('goto last channel')),
+				'4': (self.keyNumberGlobal, _('previous channel page')),
+				'0': (self.keyNumberGlobal, _('goto current channel and now')),
+				'6': (self.keyNumberGlobal, _('next channel page')),
+				'7': (self.keyNumberGlobal, _('goto now')),
+				'8': (self.keyNumberGlobal, _('all events down')),
+				'9': (self.keyNumberGlobal, _('Goto Primetime')),
+				'5': (self.keyNumberGlobal, _('Set Basetime'))
 			}, prio=-1, description=_("EPG Other Actions"))
 
 		if self.type == EPG_TYPE_GRAPH:
