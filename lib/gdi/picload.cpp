@@ -1433,9 +1433,9 @@ RESULT ePicLoad::setPara(PyObject *val)
 		ePyObject fast		= PySequence_Fast(val, "");
 		int width		= PyInt_AsLong(PySequence_Fast_GET_ITEM(fast, 0));
 		int height		= PyInt_AsLong(PySequence_Fast_GET_ITEM(fast, 1));
-		double aspectRatio 	= PyInt_AsLong(PySequence_Fast_GET_ITEM(fast, 2));
+		double aspectRatio 	= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(fast, 2));
 		int as			= PyInt_AsLong(PySequence_Fast_GET_ITEM(fast, 3));
-		bool useCache		= PyInt_AsLong(PySequence_Fast_GET_ITEM(fast, 4));
+		bool useCache		= PyBool_AsBool(PySequence_Fast_GET_ITEM(fast, 4));
 		int resizeType	        = PyInt_AsLong(PySequence_Fast_GET_ITEM(fast, 5));
 		const char *bg_str	= PyString_AsString(PySequence_Fast_GET_ITEM(fast, 6));
 		return setPara(width, height, aspectRatio, as, useCache, resizeType, bg_str);
