@@ -1,4 +1,7 @@
 %{
+#if PY_MAJOR_VERSION >= 3
+#define PY_SSIZE_T_CLEAN
+#endif
 #include <lib/base/console.h>
 #include "structmember.h"
 
@@ -187,7 +190,11 @@ static PyObject *
 eConsolePy_write(eConsolePy* self, PyObject *args)
 {
 	char *data;
+#if PY_MAJOR_VERSION >= 3
+	Py_ssize_t data_len;
+#else
 	int data_len;
+#endif
 	int len = -1;
 	if (!PyArg_ParseTuple(args, "s#|i", &data, &data_len, &len))
 	{
