@@ -461,9 +461,7 @@ inline void Impl_DECREF(PyObject *ob)
 #define PyDict_New(...) Impl_PyDict_New(__FILE__, __LINE__)
 #define PyString_FromString(str) Impl_PyString_FromString(__FILE__, __LINE__, str)
 #define PyString_FromFormat(str, args...) Impl_PyString_FromFormat(__FILE__, __LINE__, str, args)
-#if PY_MAJOR_VERSION < 3
 #define PyInt_FromLong(val) Impl_PyInt_FromLong(__FILE__, __LINE__, val)
-#endif
 #define PyLong_FromLong(val) Impl_PyLong_FromLong(__FILE__, __LINE__, val)
 #define PyLong_FromUnsignedLong(val) Impl_PyLong_FromUnsignedLong(__FILE__, __LINE__, val)
 #define PyLong_FromLongLong(val) Impl_PyLong_FromLongLong(__FILE__, __LINE__, val)
@@ -479,9 +477,7 @@ inline void Impl_DECREF(PyObject *ob)
 #define PyDict_New(...) Impl_PyDict_New()
 #define PyString_FromString(str) Impl_PyString_FromString(str)
 #define PyString_FromFormat(str, args...) Impl_PyString_FromFormat(str, args)
-#if PY_MAJOR_VERSION < 3
 #define PyInt_FromLong(val) Impl_PyInt_FromLong(val)
-#endif
 #define PyLong_FromLong(val) Impl_PyLong_FromLong(val)
 #define PyLong_FromUnsignedLong(val) Impl_PyLong_FromUnsignedLong(val)
 #define PyLong_FromLongLong(val) Impl_PyLong_FromLongLong(val)
