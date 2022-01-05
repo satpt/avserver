@@ -189,28 +189,32 @@ eConsolePy_write(eConsolePy* self, PyObject *args)
 	char *data;
 	int len = -1;
 
+#if PY_MAJOR_VERSION >= 3
+
 	if (!PyArg_ParseTuple(args, "s|i", &data, &len))
 	{
 		PyErr_SetString(PyExc_TypeError,
 			"1st arg must be a string, optionaly 2nd arg can be the string length");
 		return NULL;
 	}
+
 	int data_len = strlen(data);
 
-	if (len < 0)
-		len = data_len;	
+#else
 
-	/*
-	Py_ssize_t data_len;
+	int data_len;
 	if (!PyArg_ParseTuple(args, "s#|i", &data, &data_len, &len))
 	{
 		PyErr_SetString(PyExc_TypeError,
 			"1st arg must be a string, optionaly 2nd arg can be the string length");
 		return NULL;
 	}
+
+#endif
+
 	if (len < 0)
 		len = data_len;	
-	*/
+
 	self->cont->write(data, len);
 	Py_RETURN_NONE;
 }
