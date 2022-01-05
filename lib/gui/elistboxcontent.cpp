@@ -914,21 +914,26 @@ void eListboxPythonMultiContent::paint(gPainter &painter, eWindowStyle &style, c
 					continue;
 
 				const char *string = (PyString_Check(pstring)) ? PyString_AsString(pstring) : "<not-a-string>";
-				int x = PyFloat_Check(px) ? (int)PyFloat_AsDouble(px) : PyInt_AsLong(px); 
-				x += offset.x();
 
-				int x = PyFloat_Check(py) ? (int)PyFloat_AsDouble(py) : PyInt_AsLong(py); 
-				y += offset.y();
+				#if PY_VERSION_HEX >= 0x030a0000
 
-				int width = PyFloat_Check(pwidth) ? (int)PyFloat_AsDouble(pwidth) : PyInt_AsLong(pwidth); 
-				int height = PyFloat_Check(pheight) ? (int)PyFloat_AsDouble(pheight) : PyInt_AsLong(pheight); 
+					int x = PyFloat_Check(px) ? (int)PyFloat_AsDouble(px) : PyInt_AsLong(px); 
+					x += offset.x();
 
-				/*
-				int x = PyInt_AsLong(px) + offset.x();
-				int y = PyInt_AsLong(py) + offset.y();
-				int width = PyInt_AsLong(pwidth);
-				int height = PyInt_AsLong(pheight);
-				*/
+					int y = PyFloat_Check(py) ? (int)PyFloat_AsDouble(py) : PyInt_AsLong(py); 
+					y += offset.y();
+
+					int width = PyFloat_Check(pwidth) ? (int)PyFloat_AsDouble(pwidth) : PyInt_AsLong(pwidth); 
+					int height = PyFloat_Check(pheight) ? (int)PyFloat_AsDouble(pheight) : PyInt_AsLong(pheight); 
+
+				#else
+
+					int x = PyInt_AsLong(px) + offset.x();
+					int y = PyInt_AsLong(py) + offset.y();
+					int width = PyInt_AsLong(pwidth);
+					int height = PyInt_AsLong(pheight);
+
+				#endif
 
 				int flags = PyInt_AsLong(pflags);
 				int fnt = PyInt_AsLong(pfnt);
@@ -1047,21 +1052,27 @@ void eListboxPythonMultiContent::paint(gPainter &painter, eWindowStyle &style, c
 						pbackColorSelected=ePyObject();
 				}
 
-				int x = PyFloat_Check(px) ? (int)PyFloat_AsDouble(px) : PyInt_AsLong(px); 
-				x += offset.x();
 
-				int x = PyFloat_Check(py) ? (int)PyFloat_AsDouble(py) : PyInt_AsLong(py); 
-				y += offset.y();
+				#if PY_VERSION_HEX >= 0x030a0000
 
-				int width = PyFloat_Check(pwidth) ? (int)PyFloat_AsDouble(pwidth) : PyInt_AsLong(pwidth); 
-				int height = PyFloat_Check(pheight) ? (int)PyFloat_AsDouble(pheight) : PyInt_AsLong(pheight); 
+					int x = PyFloat_Check(px) ? (int)PyFloat_AsDouble(px) : PyInt_AsLong(px); 
+					x += offset.x();
 
-				/*
-				int x = PyInt_AsLong(px) + offset.x();
-				int y = PyInt_AsLong(py) + offset.y();
-				int width = PyInt_AsLong(pwidth);
-				int height = PyInt_AsLong(pheight);
-				*/
+					int y = PyFloat_Check(py) ? (int)PyFloat_AsDouble(py) : PyInt_AsLong(py); 
+					y += offset.y();
+
+					int width = PyFloat_Check(pwidth) ? (int)PyFloat_AsDouble(pwidth) : PyInt_AsLong(pwidth); 
+					int height = PyFloat_Check(pheight) ? (int)PyFloat_AsDouble(pheight) : PyInt_AsLong(pheight); 
+
+				#else
+
+					int x = PyInt_AsLong(px) + offset.x();
+					int y = PyInt_AsLong(py) + offset.y();
+					int width = PyInt_AsLong(pwidth);
+					int height = PyInt_AsLong(pheight);
+
+				#endif
+
 				int filled = PyInt_AsLong(pfilled_perc);
 
 				if ((filled < 0) && data) /* if the string is in a negative number, it refers to the 'data' list. */
@@ -1148,21 +1159,27 @@ void eListboxPythonMultiContent::paint(gPainter &painter, eWindowStyle &style, c
 				if (!ppixmap || ppixmap == Py_None)
 					continue;
 
-				int x = PyFloat_Check(px) ? (int)PyFloat_AsDouble(px) : PyInt_AsLong(px); 
-				x += offset.x();
+				#if PY_VERSION_HEX >= 0x030a0000
 
-				int x = PyFloat_Check(py) ? (int)PyFloat_AsDouble(py) : PyInt_AsLong(py); 
-				y += offset.y();
+					int x = PyFloat_Check(px) ? (int)PyFloat_AsDouble(px) : PyInt_AsLong(px); 
+					x += offset.x();
 
-				int width = PyFloat_Check(pwidth) ? (int)PyFloat_AsDouble(pwidth) : PyInt_AsLong(pwidth); 
-				int height = PyFloat_Check(pheight) ? (int)PyFloat_AsDouble(pheight) : PyInt_AsLong(pheight); 
+					int y = PyFloat_Check(py) ? (int)PyFloat_AsDouble(py) : PyInt_AsLong(py); 
+					y += offset.y();
 
-				/*
-				int x = PyInt_AsLong(px) + offset.x();
-				int y = PyInt_AsLong(py) + offset.y();
-				int width = PyInt_AsLong(pwidth);
-				int height = PyInt_AsLong(pheight);
-				*/
+					int width = PyFloat_Check(pwidth) ? (int)PyFloat_AsDouble(pwidth) : PyInt_AsLong(pwidth); 
+					int height = PyFloat_Check(pheight) ? (int)PyFloat_AsDouble(pheight) : PyInt_AsLong(pheight); 
+
+				#else
+
+					int x = PyInt_AsLong(px) + offset.x();
+					int y = PyInt_AsLong(py) + offset.y();
+					int width = PyInt_AsLong(pwidth);
+					int height = PyInt_AsLong(pheight);
+
+				#endif
+
+
 				int flags = 0;
 				ePtr<gPixmap> pixmap;
 				if (SwigFromPython(pixmap, ppixmap))
