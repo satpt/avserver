@@ -30,7 +30,8 @@ eDVBAudio::eDVBAudio(eDVBDemux *demux, int dev)
 {
 	char filename[128];
 #ifdef HAVE_HISIAPI
-	sprintf(filename, "/dev/player/audio0");
+//satpt	sprintf(filename, "/dev/player/audio0");
+	sprintf(filename, "/dev/dvb/adapter%d/audio%d", demux ? demux->adapter : 0, dev);
 #else
 	sprintf(filename, "/dev/dvb/adapter%d/audio%d", demux ? demux->adapter : 0, dev);
 #endif
@@ -265,7 +266,8 @@ eDVBVideo::eDVBVideo(eDVBDemux *demux, int dev)
 {
 	char filename[128];
 #ifdef HAVE_HISIAPI
-	sprintf(filename, "/dev/player/video0");
+//satpt	sprintf(filename, "/dev/player/video0");
+	sprintf(filename, "/dev/dvb/adapter%d/video%d", demux ? demux->adapter : 0, dev);
 #else
 	sprintf(filename, "/dev/dvb/adapter%d/video%d", demux ? demux->adapter : 0, dev);
 #endif
@@ -1069,7 +1071,8 @@ eTSMPEGDecoder::eTSMPEGDecoder(eDVBDemux *demux, int decoder)
 
 	char filename[128];
 #ifdef HAVE_HISIAPI
-	sprintf(filename, "/dev/player/audio0");
+//satpt	sprintf(filename, "/dev/player/audio0");
+	sprintf(filename, "/dev/dvb/adapter%d/audio%d", m_demux ? m_demux->adapter : 0, m_decoder);
 #else
 	sprintf(filename, "/dev/dvb/adapter%d/audio%d", m_demux ? m_demux->adapter : 0, m_decoder);
 #endif
