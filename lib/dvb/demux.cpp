@@ -95,7 +95,8 @@ int eDVBDemux::openDVR(int flags)
 {
 	char filename[32];
 #ifdef HAVE_HISIAPI
-	snprintf(filename, sizeof(filename), "/dev/player/dvr%d", adapter);
+//sapt	snprintf(filename, sizeof(filename), "/dev/player/dvr%d", adapter);
+	snprintf(filename, sizeof(filename), "/dev/dvb/adapter%d/dvr%d", adapter, demux);
 #else
 	snprintf(filename, sizeof(filename), "/dev/dvb/adapter%d/dvr%d", adapter, demux);
 #endif
