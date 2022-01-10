@@ -2536,7 +2536,7 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 
 	if (m_pvr_fd_dst < 0)
 	{
-#if defined(HAVE_HISIAPI) // our pvr device is called dvr
+#ifdef HAVE_HISIAPI
 		char dvrDev[128];
 		int dvrIndex = m_mgr->m_adapter.begin()->getNumDemux() - 1;
 		eDebug("[satpt] getDemux dvrIndex=%02X", dvrIndex);
