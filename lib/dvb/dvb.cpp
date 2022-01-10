@@ -2536,18 +2536,13 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 
 	if (m_pvr_fd_dst < 0)
 	{
-#ifdef HAVE_HISIAPI
+#if defined(__sh__) // our pvr device is called dvr
 		char dvrDev[128];
 		int dvrIndex = m_mgr->m_adapter.begin()->getNumDemux() - 1;
-		eDebug("[satpt] getDemux dvrIndex=%02X", dvrIndex);
-		eDebug("[satpt] can't open PVR file %s ", dvrIndex);
 		sprintf(dvrDev, "/dev/dvb/adapter0/dvr%d", dvrIndex);
 		m_pvr_fd_dst = open(dvrDev, O_WRONLY);
 #else
 		ePtr<eDVBAllocatedDemux> &demux = m_demux ? m_demux : m_decoder_demux;
-		demux = 0;
-		eDebug("[satpt2] getDemux demux=%s", demux);
-		eDebug("[satpt2] can't open PVR file %s ", demux);
 		if (demux)
 		{
 			m_pvr_fd_dst = demux->get().openDVR(O_WRONLY);
@@ -2559,13 +2554,12 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 		}
 		else
 		{
-			eDebug("[satpt3] can't open DENTRO DO ELSE %s ", demux);
 			eDebug("[eDVBChannel] no demux allocated yet.. so its not possible to open the dvr device!!");
 			return -ENODEV;
 		}
 #endif
 	}
-	
+
 	m_pvr_thread = new eDVBChannelFilePush(m_source->getPacketSize());
 	m_pvr_thread->enablePVRCommit(1);
 	m_pvr_thread->setStreamMode(m_source->isStream());
@@ -2581,6 +2575,7 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 
 	return 0;
 }
+
 
 void eDVBChannel::stop()
 {
