@@ -2545,7 +2545,7 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 		m_pvr_fd_dst = open(dvrDev, O_WRONLY);
 #else
 		ePtr<eDVBAllocatedDemux> &demux = m_demux ? m_demux : m_decoder_demux;
-		demux = 0;
+		demux = 2;
 		eDebug("[satpt2] getDemux demux=%s", demux);
 		eDebug("[satpt2] can't open PVR file %s ", demux);
 		if (demux)
