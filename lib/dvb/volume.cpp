@@ -14,8 +14,10 @@
 #include <ost/video.h>
 #else
 #ifdef HAVE_HISIAPI
-#define VIDEO_DEV "/dev/player/video0"
-#define AUDIO_DEV "/dev/player/audio0"
+//satpt#define VIDEO_DEV "/dev/player/video0"
+//satpt #define AUDIO_DEV "/dev/player/audio0"
+#define VIDEO_DEV "/dev/dvb/adapter0/video0"
+#define AUDIO_DEV "/dev/dvb/adapter0/audio0"
 #else
 #define VIDEO_DEV "/dev/dvb/adapter0/video0"
 #define AUDIO_DEV "/dev/dvb/adapter0/audio0"
