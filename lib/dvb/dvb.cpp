@@ -2561,7 +2561,7 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 		{
 			eDebug("[satpt3] can't open DENTRO DO ELSE %s ", demux);
 			eDebug("[eDVBChannel] no demux allocated yet.. so its not possible to open the dvr device!!");
-			return -ENODEV;
+	//		return -ENODEV;
 		}
 #endif
 	}
