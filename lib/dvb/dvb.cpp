@@ -2544,14 +2544,6 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 		sprintf(dvrDev, "/dev/dvb/adapter0/dvr%d", dvrIndex);
 		m_pvr_fd_dst = open(dvrDev, O_WRONLY);
 #else
-#ifdef HAVE_HISIAPI
-		char dvrDev[128];
-		int dvrIndex = m_mgr->m_adapter.begin()->getNumDemux() - 1;
-		eDebug("[satpt] getDemux dvrIndex=%02X", dvrIndex);
-		eDebug("[satpt] can't open PVR file %s ", dvrIndex);
-		sprintf(dvrDev, "/dev/dvb/adapter0/dvr%d", dvrIndex);
-		m_pvr_fd_dst = open(dvrDev, O_WRONLY);
-#else		
 		ePtr<eDVBAllocatedDemux> &demux = m_demux ? m_demux : m_decoder_demux;
 		demux = 0;
 		eDebug("[satpt2] getDemux demux=%s", demux);
@@ -2572,9 +2564,16 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 			return -ENODEV;
 		}
 #endif
-#endif
 	}
-
+#ifdef HAVE_HISIAPI
+	
+	char dvrDev[128];
+	int dvrIndex = m_mgr->m_adapter.begin()->getNumDemux() - 1;
+	eDebug("[satpt] getDemux dvrIndex=%02X", dvrIndex);
+	eDebug("[satpt] can't open PVR file %s ", dvrIndex);
+	sprintf(dvrDev, "/dev/dvb/adapter0/dvr%d", dvrIndex);
+	m_pvr_fd_dst = open(dvrDev, O_WRONLY);
+#endif		
 	m_pvr_thread = new eDVBChannelFilePush(m_source->getPacketSize());
 	m_pvr_thread->enablePVRCommit(1);
 	m_pvr_thread->setStreamMode(m_source->isStream());
